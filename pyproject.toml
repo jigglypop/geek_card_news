@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "card-news"
+version = "0.1.0"
+description = "GeekNews Card News Generator"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "transformers",
+    "torch",
+    "playwright",
+    "httpx",
+    "beautifulsoup4",
+    "lxml",
+    "sentencepiece",
+    "protobuf",
+    "python-dotenv",
+    "crawlee",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."] 
