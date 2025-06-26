@@ -1,46 +1,89 @@
-PAGE_CONFIG = {
-    "width": "1080px",
-    "height": "1080px",
-    "margin": {'top': '0px', 'right': '0px', 'bottom': '0px', 'left': '0px'}
-}
-# 텍스트 내용 설정
-TEXT_CONFIG = {
-    "main_title": "시그소개",
-    "sub_title": "멘사 시그를 알려주는 Q&A",
-    "thank_you_message": "읽어주셔서<br>감사합니다!",
-    "html_title": "시그니처 모임 Q&A"
-}
 # 파일 경로 설정
 PATH_CONFIG = {
     "output_dir": "output",
     "template_dir": "templates",
     "style_file": "style.css",
-    "font_dir": "fonts",
+    "cover_template": "cover_template.html",
+    "news_template": "news_template.html",
+    "summary_template": "summary_template.html",
+    "summary_item_template": "summary_item_template.html",
+    "summary_prompt": "summary_prompt.txt",
     "image_dir": "output/images",
-    "character_dir": "image/character",
-    "profile_dir": "image/profile"
+    "character_dir": "image/character"
 }
-# 출력 파일 설정
+
+# 크롤링 설정
+CRAWLING_CONFIG = {
+    "news_count": 5,  # 가져올 뉴스 개수
+    "base_url": "https://news.hada.io/",
+    "timeout": 30  # HTTP 요청 타임아웃 (초)
+}
+
+# PDF/이미지 생성 설정
 OUTPUT_CONFIG = {
-    "html_file": "output.html",
-    "pdf_file": "output.pdf"
+    "page_width": 1080,
+    "page_height": 1080,
+    "pdf_margin": {'top': '0px', 'right': '0px', 'bottom': '0px', 'left': '0px'},
+    "image_quality": 95,  # JPG 품질 (1-100)
+    "generate_png": True,
+    "generate_jpg": True,
+    "generate_pdf": True
 }
-# 표시 설정
-DISPLAY_CONFIG = {
-    "max_communities_per_page": 3,
-    "date_format": "%Y-%m-%d"
-}
-# 폰트 설정
-FONT_CONFIG = {
-    "pretendard_regular": "Pretendard-Regular.otf",
-    "pretendard_medium": "Pretendard-Medium.otf", 
-    "pretendard_bold": "Pretendard-Bold.otf",
-    "blackhan": "BlackHanSans-Regular.ttf"
-}
+
 # 이미지 설정
 IMAGE_CONFIG = {
     "character_extensions": [".png", ".jpg", ".jpeg"],
-    "profile_extensions": [".jpg", ".jpeg", ".png"],
     "main_character": "1",
     "all_characters": "all"
+}
+
+# 색상 커스터마이징 설정
+COLOR_CONFIG = {
+    "cover_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)",    # 연한 빨간색 그라디언트
+    "news_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)",     # 모든 페이지 통일
+    "summary_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)",  # 모든 페이지 통일
+    "end_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)"       # 모든 페이지 통일
+}
+
+# 폰트 크기 커스터마이징 설정
+FONT_CONFIG = {
+    "cover_title": "200px",
+    "cover_subtitle": "50px",
+    "news_title": "48px",        # 크게
+    "news_description": "32px",   # 크게
+    "news_category": "18px",
+    "news_number": "36px",
+    "link_text": "18px",         # 작게
+    "summary_title": "72px",      # 원래대로
+    "summary_subtitle": "36px",
+    "summary_item_title": "22px"
+}
+
+# 텍스트 커스터마이징 설정
+TEXT_CONFIG = {
+    "cover_subtitle": "모여봐요 개발자와 AI의 숲",
+    "cover_title": "모두뉴스",
+    "news_card_prefix": "GeekNews",  # GeekNews #1, #2 형식
+    "speech_bubble_text": "뉴-스!",
+    "summary_title": "GeekNews 요약",
+    "summary_subtitle": "오늘의 주요 뉴스",
+    "summary_footer_text": "총 {count}개의 뉴스를 확인했어요",
+    "summary_source": "출처: GeekNews (news.hada.io)"
+}
+
+# 이모지 커스터마이징 설정
+EMOJI_CONFIG = {
+    "speech_bubble": "💬",
+    "lightbulb": "💡",
+    "star": "⭐"
+}
+
+# AI 모델 설정
+AI_CONFIG = {
+    "model_name": "lcw99/t5-large-korean-text-summary",
+    "max_input_length": 768,
+    "max_output_length": 150,
+    "min_output_length": 50,
+    "length_penalty": 2.0,
+    "num_beams": 4
 } 
