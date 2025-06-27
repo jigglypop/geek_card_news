@@ -128,7 +128,7 @@ a:hover {
 .title-main {
     font-size: {{cover_title_size}};
     color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 40px 0;
+    margin: 0 0 60px 0;
     font-weight: 900;
     text-shadow: 0 8px 30px rgba(0,0,0,0.3);
     letter-spacing: -3px;
@@ -143,8 +143,8 @@ a:hover {
 }
 
 .main-character {
-    max-width: 250px;
-    max-height: 250px;
+    max-width: 450px;
+    max-height: 450px;
     object-fit: contain;
     filter: drop-shadow(0 10px 25px rgba(0,0,0,0.3));
 }

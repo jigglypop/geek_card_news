@@ -34,15 +34,25 @@ OUTPUT_CONFIG = {
 IMAGE_CONFIG = {
     "character_extensions": [".png", ".jpg", ".jpeg"],
     "main_character": "1",
-    "all_characters": "all"
+    "all_characters": "all",
+    "character_names": ["1", "2", "3", "4", "5", "6", "7"]
 }
-
+# S3 설정
+S3_CONFIG = {
+    "use_s3": True,
+    "bucket_name": "jiggloghttps",
+    "region": "ap-northeast-2",
+    "base_url": "https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/",
+    "character_prefix": "image/",
+    "qr_code_key": "image/QR.png",
+    "font_prefix": "fonts/"
+}
 # 색상 커스터마이징 설정
 COLOR_CONFIG = {
-    "cover_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)",    # 연한 빨간색 그라디언트
-    "news_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)",     # 모든 페이지 통일
-    "summary_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)",  # 모든 페이지 통일
-    "end_background": "linear-gradient(135deg, #E86E5A 0%, #D85745 100%)"       # 모든 페이지 통일
+    "cover_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)",    # 연한 빨간색 그라디언트
+    "news_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)",     # 모든 페이지 통일
+    "summary_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)",  # 모든 페이지 통일
+    "end_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)"       # 모든 페이지 통일
 }
 
 # 폰트 크기 커스터마이징 설정
@@ -58,26 +68,23 @@ FONT_CONFIG = {
     "summary_subtitle": "36px",
     "summary_item_title": "22px"
 }
-
 # 텍스트 커스터마이징 설정
 TEXT_CONFIG = {
     "cover_subtitle": "모여봐요 개발자와 AI의 숲",
-    "cover_title": "모두뉴스",
-    "news_card_prefix": "GeekNews",  # GeekNews #1, #2 형식
+    "cover_title": "모드뉴스",
+    "news_card_prefix": "GeekNews", 
     "speech_bubble_text": "뉴-스!",
     "summary_title": "GeekNews 요약",
     "summary_subtitle": "오늘의 주요 뉴스",
     "summary_footer_text": "총 {count}개의 뉴스를 확인했어요",
     "summary_source": "출처: GeekNews (news.hada.io)"
 }
-
 # 이모지 커스터마이징 설정
 EMOJI_CONFIG = {
     "speech_bubble": "💬",
     "lightbulb": "💡",
     "star": "⭐"
 }
-
 # AI 모델 설정
 AI_CONFIG = {
     "model_name": "lcw99/t5-large-korean-text-summary",
