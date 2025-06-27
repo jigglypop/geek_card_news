@@ -2,4 +2,5 @@ urllib3
 python-dotenv
 httpx
 playwright
-WeasyPrint 
+WeasyPrint
+Pillow 

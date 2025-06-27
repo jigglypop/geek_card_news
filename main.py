@@ -9,6 +9,7 @@ from config import *
 from dotenv import load_dotenv
 import httpx
 from playwright.async_api import async_playwright
+from PIL import Image
 
 load_dotenv()
 
@@ -103,7 +104,6 @@ class GeekNewsCardGenerator:
                 
                 desc_elem = topic.find('span', class_='topicdesc')
                 desc = desc_elem.text.strip() if desc_elem else ''
-
                 if topic_id:
                     detailed_desc = await self.get_detail(topic_id)
                     if detailed_desc and len(detailed_desc) > len(desc):
@@ -195,14 +195,12 @@ class GeekNewsCardGenerator:
                 elif "news" in news['link']: domain_label = "뉴스"
 
             geek_news_link = f"https://news.hada.io/topic?id={news['topic_id']}" if news['topic_id'] else ""
-            
             topic_category = "기술"
             if "github" in news['link'].lower() or "git" in news['title'].lower(): topic_category = "개발"
             elif "youtube" in news['link'].lower(): topic_category = "영상"
             elif "blog" in news['link'].lower(): topic_category = "블로그"
             elif "ai" in news['title'].lower() or "gemini" in news['title'].lower(): topic_category = "AI"
             elif "데이터" in news['title'] or "data" in news['title'].lower(): topic_category = "데이터"
-
             links_html = ""
             if geek_news_link:
                 links_html += f'<div class="link-item"><span class="link-label">토론:</span>{geek_news_link}</div>'
@@ -247,12 +245,14 @@ class GeekNewsCardGenerator:
 
     def create_styles(self):
         base_css = self.load_template(PATH_CONFIG["style_file"])
-        
-        customized_css = base_css.replace("{{cover_background}}", COLOR_CONFIG["cover_background"])
+        # 페이지 크기 설정 적용
+        customized_css = base_css.replace("{{page_width}}", str(OUTPUT_CONFIG["page_width"]))
+        customized_css = customized_css.replace("{{page_height}}", str(OUTPUT_CONFIG["page_height"]))
+        # config.py의 설정으로 CSS 커스터마이징
+        customized_css = customized_css.replace("{{cover_background}}", COLOR_CONFIG["cover_background"])
         customized_css = customized_css.replace("{{news_background}}", COLOR_CONFIG["news_background"])
         customized_css = customized_css.replace("{{summary_background}}", COLOR_CONFIG["summary_background"])
         customized_css = customized_css.replace("{{end_background}}", COLOR_CONFIG["end_background"])
-        
         customized_css = customized_css.replace("{{cover_title_size}}", FONT_CONFIG["cover_title"])
         customized_css = customized_css.replace("{{cover_subtitle_size}}", FONT_CONFIG["cover_subtitle"])
         customized_css = customized_css.replace("{{news_title_size}}", FONT_CONFIG["news_title"])
@@ -326,8 +326,48 @@ class GeekNewsCardGenerator:
                     jpg_output_path = os.path.join(image_dir, jpg_filename)
                     await page_element.screenshot(path=jpg_output_path, type='jpeg', quality=OUTPUT_CONFIG["image_quality"], omit_background=False)
                     print(f"'{jpg_filename}' 생성 완료")
-            
             await browser.close()
+
+    async def generate_combined_image(self, news_items):
+        print("연속 그라데이션을 적용하여 이미지를 결합하는 중...")
+        # 1. 템플릿 및 데이터 로드
+        template_str = self.load_template("combined_template.html")
+        if not template_str:
+            print("통합 이미지 템플릿을 찾을 수 없습니다.")
+            return
+
+        html_content = await self.create_html(news_items)
+        base_css = self.create_styles()
+        # 2. 템플릿에 데이터 주입
+        final_html = template_str.format(
+            base_css=base_css,
+            html_content=html_content,
+            page_width=OUTPUT_CONFIG["page_width"],
+            page_height=OUTPUT_CONFIG["page_height"],
+            cover_background=COLOR_CONFIG["cover_background"]
+        )
+        # 3. 임시 HTML 파일 생성 및 스크린샷
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        combined_html_path = os.path.join(self.output_dir, f"combined_view_{timestamp}.html")
+        combined_image_path = os.path.join(self.output_dir, f"combined_news.png")
+        with open(combined_html_path, "w", encoding="utf-8") as f:
+            f.write(final_html)
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch()
+                page = await browser.new_page()
+                html_path_url = f'file://{os.path.abspath(combined_html_path)}'
+                await page.goto(html_path_url, wait_until='networkidle')
+                await page.locator('#wrapper').screenshot(path=combined_image_path)
+                await browser.close()
+            print(f"'{combined_image_path}' 파일 생성 완료")
+        
+        except Exception as e:
+            print(f"통합 이미지 생성 실패: {e}")
+        
+        finally:
+            if os.path.exists(combined_html_path):
+                os.remove(combined_html_path) # 임시 HTML 파일 삭제
 
     def read_file(self, filepath):
         try:
@@ -352,6 +392,7 @@ class GeekNewsCardGenerator:
         html_content = await self.create_html(news_items)
         css_content = self.create_styles()
         await self.generate_all(html_content, css_content)
+        await self.generate_combined_image(news_items)
         print("=== 긱뉴스 카드뉴스 생성 완료 ===")
 
 async def main():

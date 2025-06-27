@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>오늘의 긱뉴스 (통합본)</title>
+    <style>
+        /* Base Styles */
+        {{ base_css }}
+
+        /* Overrides for Combined View */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #wrapper {
+            width: {{ page_width }}px;
+            background: {{ cover_background }};
+        }
+        .page {
+            height: {{ page_height }}px;
+            page-break-after: unset;
+            background: transparent !important;
+        }
+        .card-container, .cover-container, .summary-page .card-container {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        {{ html_content }}
+    </div>
+</body>
+</html> 

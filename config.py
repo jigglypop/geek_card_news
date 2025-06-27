@@ -21,7 +21,7 @@ CRAWLING_CONFIG = {
 
 # PDF/이미지 생성 설정
 OUTPUT_CONFIG = {
-    "page_width": 1080,
+    "page_width": 1920,
     "page_height": 1080,
     "pdf_margin": {'top': '0px', 'right': '0px', 'bottom': '0px', 'left': '0px'},
     "image_quality": 95,  # JPG 품질 (1-100)
@@ -49,10 +49,10 @@ S3_CONFIG = {
 }
 # 색상 커스터마이징 설정
 COLOR_CONFIG = {
-    "cover_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)",    # 연한 빨간색 그라디언트
-    "news_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)",     # 모든 페이지 통일
-    "summary_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)",  # 모든 페이지 통일
-    "end_background": "linear-gradient(135deg, #FF5F6D 0%, #FFC371 100%)"       # 모든 페이지 통일
+    "cover_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)",    # 16:9 비율에 맞게 각도 조정
+    "news_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)",     # 모든 페이지 통일
+    "summary_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)",  # 모든 페이지 통일
+    "end_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)"       # 모든 페이지 통일
 }
 
 # 폰트 크기 커스터마이징 설정
