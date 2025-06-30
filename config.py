@@ -14,7 +14,7 @@ PATH_CONFIG = {
 
 # 크롤링 설정
 CRAWLING_CONFIG = {
-    "news_count": 5,  # 가져올 뉴스 개수
+    "news_count": 6,  # 가져올 뉴스 개수
     "base_url": "https://news.hada.io/",
     "timeout": 30  # HTTP 요청 타임아웃 (초)
 }
@@ -59,14 +59,14 @@ COLOR_CONFIG = {
 FONT_CONFIG = {
     "cover_title": "200px",
     "cover_subtitle": "50px",
-    "news_title": "48px",        # 크게
-    "news_description": "32px",   # 크게
-    "news_category": "18px",
+    "news_title": "56px",        # 48px → 56px
+    "news_description": "36px",   # 32px → 36px
+    "news_category": "24px",      # 18px → 24px
     "news_number": "36px",
-    "link_text": "18px",         # 작게
-    "summary_title": "72px",      # 원래대로
+    "link_text": "22px",         # 18px → 22px
+    "summary_title": "72px",
     "summary_subtitle": "36px",
-    "summary_item_title": "22px"
+    "summary_item_title": "26px"  # 22px → 26px
 }
 # 텍스트 커스터마이징 설정
 TEXT_CONFIG = {

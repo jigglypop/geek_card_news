@@ -21,6 +21,12 @@ dependencies = [
     "protobuf",
     "python-dotenv",
     "crawlee",
+    "WeasyPrint",
+    "Pillow",
+    "urllib3",
+    "fastapi",
+    "uvicorn[standard]",
+    "apscheduler"
 ]
 
 [tool.hatch.build.targets.wheel]
