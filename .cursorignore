@@ -2,3 +2,6 @@
 .venv/
 fonts
 image
+__pycache__
+output
+uv.lock

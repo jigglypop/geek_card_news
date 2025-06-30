@@ -20,11 +20,6 @@ body {
     background: transparent;
 }
 
-/* Page Backgrounds */
-/* .cover { background: {{cover_background}}; } */
-/* .news-page { background: {{news_background}}; } */
-/* .summary-page { background: {{summary_background}}; } */
-
 /* Cover Page */
 .cover-container {
     display: flex;
@@ -36,7 +31,10 @@ body {
     height: 100%;
 }
 .title-sub { font-size: {{cover_subtitle_size}}; }
-.title-main { font-size: {{cover_title_size}}; font-weight: 900; }
+.title-main { 
+    font-size: {{cover_title_size}}; font-weight: 900; 
+    background: linear-gradient(to top, rgba(255, 188, 81, 0.5) 40%, transparent 40%);
+}
 .main-character { max-width: 450px; max-height: 450px; }
 .qr-code { width: 150px; height: 150px; background: white; padding: 10px; border-radius: 10px; position: absolute; top: 60px; right: 60px; }
 
@@ -79,7 +77,19 @@ body {
     display: inline-block;
     margin-bottom: 15px;
 }
-.news-item .news-title { font-size: {{news_title_size}}; font-weight: 700; margin: 15px 0; }
+.news-item .news-title { 
+    font-size: {{news_title_size}}; 
+    font-weight: 700; 
+    margin: 15px 0;
+}
+
+.news-item .news-title span {
+    display: inline;
+    color: rgba(50, 50, 50, 0.8);
+    background: linear-gradient(to top, rgba(255, 188, 81, 0.5) 40%, transparent 40%);
+    padding-bottom: 2px;
+}
+
 .news-item .news-description { font-size: {{news_description_size}}; flex-grow: 1; line-height: 1.6; }
 .news-item .links { 
     margin-top: auto; 
@@ -106,16 +116,29 @@ body {
     border-radius: 20px;
     backdrop-filter: blur(10px);
 }
-.summary-main-title { font-size: {{summary_title_size}}; }
-.summary-date { font-size: {{summary_subtitle_size}}; }
-.summary-subtitle { font-size: {{summary_subtitle_size}}; }
+.summary-main-title { 
+    font-size: {{summary_title_size}}; 
+    color: rgba(50, 50, 50, 0.8);
+}
+.summary-title { 
+    font-size: {{summary_subtitle_size}};
+    color: rgba(50, 50, 50, 0.8);
+}
+.summary-date { 
+    font-size: {{summary_subtitle_size}};    
+    color: rgba(50, 50, 50, 0.8); 
+}
+.summary-subtitle { 
+    font-size: {{summary_subtitle_size}}; 
+    color: rgba(50, 50, 50, 0.8); 
+}
 .summary-list { list-style: none; padding: 0; }
 .summary-item { display: flex; align-items: baseline; margin-bottom: 15px; font-size: {{summary_item_title_size}}; }
 .summary-number { 
     margin-right: 15px; 
     font-weight: bold;
     background: rgba(0, 0, 0, 0.5);
-    color: white;
+    color: #ffffff;
     width: 35px;
     height: 35px;
     border-radius: 50%;

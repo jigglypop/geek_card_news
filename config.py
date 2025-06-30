@@ -57,16 +57,16 @@ COLOR_CONFIG = {
 
 # 폰트 크기 커스터마이징 설정
 FONT_CONFIG = {
-    "cover_title": "200px",
-    "cover_subtitle": "50px",
-    "news_title": "56px",        # 48px → 56px
+    "cover_title": "220px",
+    "cover_subtitle": "80px",
+    "news_title": "48px",        # 48px → 56px
     "news_description": "36px",   # 32px → 36px
     "news_category": "24px",      # 18px → 24px
     "news_number": "36px",
     "link_text": "22px",         # 18px → 22px
     "summary_title": "72px",
     "summary_subtitle": "36px",
-    "summary_item_title": "26px"  # 22px → 26px
+    "summary_item_title": "32px"  # 22px → 26px
 }
 # 텍스트 커스터마이징 설정
 TEXT_CONFIG = {
@@ -87,10 +87,18 @@ EMOJI_CONFIG = {
 }
 # AI 모델 설정
 AI_CONFIG = {
+    # 요약 모드 설정: "huggingface" 또는 "openai"
+    "summary_mode": "openai",  # 기본값은 허깅페이스
+    # 허깅페이스 모델 설정
     "model_name": "lcw99/t5-large-korean-text-summary",
     "max_input_length": 768,
-    "max_output_length": 150,
+    "max_output_length": 100,
     "min_output_length": 50,
     "length_penalty": 2.0,
-    "num_beams": 4
+    "num_beams": 4,
+    
+    # OpenAI 모델 설정
+    "openai_model": "gpt-4o-mini",  # 또는 "gpt-3.5-turbo"
+    "openai_max_tokens": 80,
+    "openai_temperature": 0.3
 } 

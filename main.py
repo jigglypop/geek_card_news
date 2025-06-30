@@ -13,14 +13,11 @@ from fastapi.responses import FileResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import uvicorn
 from contextlib import asynccontextmanager
-from PIL import Image
-import io
 import logging
-from PIL import ImageDraw
+from openai import AsyncOpenAI
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 load_dotenv()
 
 class GeekNewsCardGenerator:
@@ -28,49 +25,88 @@ class GeekNewsCardGenerator:
         self.output_dir = PATH_CONFIG["output_dir"]
         self.template_dir = PATH_CONFIG["template_dir"]
         self.generated_image_path = os.path.join(self.output_dir, "geek_news.png")
+        self.summary_mode = AI_CONFIG["summary_mode"]
         self._initialize_model()
 
     def _initialize_model(self):
-        logging.info("한국어 요약 모델 로딩 중...")
-        hf_token = os.getenv('HUGGINGFACE_TOKEN')
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            AI_CONFIG["model_name"], token=hf_token, trust_remote_code=True
-        )
-        self.model = T5ForConditionalGeneration.from_pretrained(
-            AI_CONFIG["model_name"], token=hf_token
-        )
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model.to(self.device)
-        logging.info("모델 로딩 완료")
+        if self.summary_mode == "huggingface":
+            logging.info("한국어 요약 모델 로딩 중...")
+            hf_token = os.getenv('HUGGINGFACE_TOKEN')
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                AI_CONFIG["model_name"], token=hf_token, trust_remote_code=True
+            )
+            self.model = T5ForConditionalGeneration.from_pretrained(
+                AI_CONFIG["model_name"], token=hf_token
+            )
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            self.model.to(self.device)
+            logging.info("허깅페이스 모델 로딩 완료")
+        elif self.summary_mode == "openai":
+            logging.info("OpenAI 클라이언트 초기화 중...")
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+            if not openai_api_key:
+                raise ValueError("OPENAI_API_KEY 환경변수가 설정되지 않았습니다.")
+            self.openai_client = AsyncOpenAI(api_key=openai_api_key)
+            logging.info("OpenAI 클라이언트 초기화 완료")
+        else:
+            raise ValueError(f"지원하지 않는 요약 모드입니다: {self.summary_mode}")
 
-    def summarize_text(self, text):
+    async def summarize_text(self, text):
         if not text or len(text.strip()) < 50:
             logging.info(f"  [요약 건너뜀] 텍스트가 너무 짧습니다: {text[:100]}")
             return ""
         logging.info(f"  [요약 원문] {text[:150]}...")
         try:
-            prompt_template = self.load_template(PATH_CONFIG["summary_prompt"])
-            prompt = prompt_template.format(text=text)
-            inputs = self.tokenizer(
-                prompt,
-                max_length=AI_CONFIG["max_input_length"], 
-                truncation=True, 
-                return_tensors="pt"
-            ).to(self.device)
-            summary_ids = self.model.generate(
-                inputs["input_ids"],
-                max_length=AI_CONFIG["max_output_length"],
-                min_length=AI_CONFIG["min_output_length"],
-                length_penalty=AI_CONFIG["length_penalty"],
-                num_beams=AI_CONFIG["num_beams"],
-                early_stopping=True
-            )
-            summary = self.tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-            logging.info(f"  [요약 성공] {summary.strip()}")
-            return summary.strip()
+            if self.summary_mode == "huggingface":
+                return await self._summarize_huggingface(text)
+            elif self.summary_mode == "openai":
+                return await self._summarize_openai(text)
+            else:
+                raise ValueError(f"지원하지 않는 요약 모드입니다: {self.summary_mode}")
         except Exception as e:
             logging.error(f"  [요약 실패] 오류: {e}")
             return "요약 생성에 실패했습니다."
+
+    async def _summarize_huggingface(self, text):
+        return await asyncio.to_thread(self._summarize_huggingface_sync, text)
+
+    def _summarize_huggingface_sync(self, text):
+        prompt_template = self.load_template(PATH_CONFIG["summary_prompt"])
+        prompt = prompt_template.format(text=text)
+        inputs = self.tokenizer(
+            prompt,
+            max_length=AI_CONFIG["max_input_length"], 
+            truncation=True, 
+            return_tensors="pt"
+        ).to(self.device)
+        summary_ids = self.model.generate(
+            inputs["input_ids"],
+            max_length=AI_CONFIG["max_output_length"],
+            min_length=AI_CONFIG["min_output_length"],
+            length_penalty=AI_CONFIG["length_penalty"],
+            num_beams=AI_CONFIG["num_beams"],
+            early_stopping=True
+        )
+        summary = self.tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        logging.info(f"  [허깅페이스 요약 성공] {summary.strip()}")
+        return summary.strip()
+
+    async def _summarize_openai(self, text):
+        prompt_template = self.load_template(PATH_CONFIG["summary_prompt"])
+        prompt = prompt_template.format(text=text)
+        
+        response = await self.openai_client.chat.completions.create(
+            model=AI_CONFIG["openai_model"],
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that summarizes Korean text."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=AI_CONFIG["openai_max_tokens"],
+            temperature=AI_CONFIG["openai_temperature"]
+        )
+        summary = response.choices[0].message.content.strip()
+        logging.info(f"  [OpenAI 요약 성공] {summary}")
+        return summary
 
     async def get_detail(self, topic_id):
         try:
@@ -100,10 +136,8 @@ class GeekNewsCardGenerator:
                 if not title_elem: continue
                 title_link = title_elem.find('a')
                 if not title_link: continue
-
                 title = title_link.text.strip()
                 original_link = title_link.get('href', '')
-
                 topic_id = None
                 all_links = topic.find_all('a')
                 for link in all_links:
@@ -114,16 +148,13 @@ class GeekNewsCardGenerator:
                             break
                         except:
                             pass
-                
                 desc_elem = topic.find('span', class_='topicdesc')
                 desc = desc_elem.text.strip() if desc_elem else ''
-
                 if topic_id:
                     detailed_desc = await self.get_detail(topic_id)
                     if detailed_desc and len(detailed_desc) > len(desc):
                         desc = detailed_desc
-                
-                summarized_desc = self.summarize_text(desc)
+                summarized_desc = await self.summarize_text(desc)
                 news_items.append({
                     'title': title,
                     'description': summarized_desc if summarized_desc else "요약 정보가 없습니다.",
@@ -174,7 +205,6 @@ class GeekNewsCardGenerator:
                     elif "news" in link: domain_label = "뉴스"
                 
                 geek_news_link = f"https://news.hada.io/topic?id={news_item['topic_id']}" if news_item.get('topic_id') else ""
-                
                 topic_category = "기술"
                 link_lower = link.lower() if link else ''
                 title_lower = news_item.get('title', '').lower()
@@ -183,7 +213,6 @@ class GeekNewsCardGenerator:
                 elif "blog" in link_lower: topic_category = "블로그"
                 elif "ai" in title_lower or "gemini" in title_lower: topic_category = "AI"
                 elif "데이터" in title_lower or "data" in title_lower: topic_category = "데이터"
-
                 links_html = ""
                 if geek_news_link:
                     links_html += f'<div class="link-item"><span class="link-label">토론:</span><a href="{geek_news_link}" target="_blank">{geek_news_link}</a></div>'
@@ -193,17 +222,14 @@ class GeekNewsCardGenerator:
                 news_html_parts.append(f"""
                     <div class="news-item">
                         <div class="news-header"><span class="news-category">{topic_category}</span></div>
-                        <h2 class="news-title">{news_item['title']}</h2>
+                        <h2 class="news-title"><span>{news_item['title']}</span></h2>
                         <p class="news-description">{news_item['description']}</p>
                         <div class="links">{links_html}</div>
                     </div>
                 """)
-            
             news_content_for_page = f'<div class="news-container">{"".join(news_html_parts)}</div>'
-            
             character_src = page_characters[(i // 2) % len(page_characters)] if page_characters else None
             character_html = f'<img src="{character_src}" class="page-character" alt="캐릭터" />' if character_src else ''
-
             pages_html += news_template.format(
                 page_number=(i // 2) + 1,
                 news_content=news_content_for_page,
@@ -215,7 +241,6 @@ class GeekNewsCardGenerator:
         current_date = datetime.now().strftime("%Y년 %m월 %d일")
         summary_item_template = self.load_template(PATH_CONFIG["summary_item_template"])
         summary_items_html = ""
-        
         for index, news in enumerate(news_items, 1):
             topic_category = "기술"
             link_lower = news.get('link', '').lower()
@@ -223,13 +248,11 @@ class GeekNewsCardGenerator:
             if "github" in link_lower or "git" in title_lower: topic_category = "개발"
             elif "ai" in title_lower or "gemini" in title_lower: topic_category = "AI"
             elif "데이터" in title_lower or "data" in title_lower: topic_category = "데이터"
-            
             summary_items_html += summary_item_template.format(
                 number=index,
                 category=topic_category,
                 title=news['title']
             )
-
         summary_template = self.load_template(PATH_CONFIG["summary_template"])
         return summary_template.format(
             summary_title=TEXT_CONFIG["summary_title"],
@@ -251,13 +274,10 @@ class GeekNewsCardGenerator:
         cover_html = self._render_cover_page(main_character_src, qr_src)
         news_html = self._render_news_pages(news_items, page_characters)
         summary_html = self._render_summary_page(news_items)
-        
         return f"{cover_html}{news_html}{summary_html}"
 
     def create_styles(self):
         base_css = self.load_template(PATH_CONFIG["style_file"])
-        
-        # .format() 대신 .replace()를 사용하여 안전하게 치환
         css = base_css
         css = css.replace("{{page_width}}", str(OUTPUT_CONFIG["page_width"]))
         css = css.replace("{{page_height}}", str(OUTPUT_CONFIG["page_height"]))
@@ -277,24 +297,19 @@ class GeekNewsCardGenerator:
     async def generate_combined_image(self, news_items):
         html_content = await self.create_html(news_items)
         css_content = self.create_styles()
-        
+    
         final_html = f"<html><head><style>{css_content}</style></head><body>{html_content}</body></html>"
-        
-        logging.info("전체 페이지 스크린샷 생성 중...")
+        logging.info("전체 페이지 스크린샷 생성 중")
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             page = await browser.new_page()
             await page.set_content(final_html)
-            
-            # 뷰포트 너비 설정, 높이는 기본값으로 두되 full_page=True로 전체를 캡처
             await page.set_viewport_size({
                 "width": OUTPUT_CONFIG["page_width"], 
-                "height": 1080  # 임시 높이, full_page가 실제 컨텐츠 높이를 사용함
+                "height": 1080  
             })
-            
             await page.screenshot(path=self.generated_image_path, full_page=True)
             await browser.close()
-            
         logging.info(f"'{self.generated_image_path}' 파일 생성 완료")
 
     def read_file(self, filepath):
@@ -316,15 +331,11 @@ class GeekNewsCardGenerator:
         self.create_directory()
         logging.info("=== 긱뉴스 카드뉴스 생성 시작 ===")
         news_items = await self.fetch_news()
-        
         if not news_items:
             logging.warning("뉴스를 가져오지 못했습니다.")
             return
-
         logging.info(f"{len(news_items)}개의 뉴스를 가져왔습니다.")
-        
         await self.generate_combined_image(news_items)
-
         logging.info("=== 긱뉴스 카드뉴스 생성 완료 ===")
 
 generator = GeekNewsCardGenerator()
@@ -342,7 +353,6 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logging.info("스케줄러 시작, 매일 자정 뉴스 업데이트가 예약되었습니다.")
     yield
-    # Shutdown
     scheduler.shutdown()
     logging.info("스케줄러 종료")
 
