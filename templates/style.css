@@ -166,7 +166,7 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 60px;
     width: 100%;
-    max-width: 2400px;
+    max-width: 2400px; /* 사용자 수정 반영 */
     animation: slideUp 0.8s ease-out;
     z-index: 1; /* 캐릭터 위에 오도록 */
     position: relative; /* z-index 적용 위해 */
@@ -300,7 +300,7 @@ body {
     bottom: 2px; /* 텍스트와 겹치도록 위치 조정 */
     left: 0;
     height: 50%; /* 형광펜 두께 */
-    background-color: rgba(255, 229, 102, 0.75); /* 옅은 노란색, 투명도 조정 */
+    background-color: rgba(255, 229, 102, 0.55); /* 사용자 수정 반영 */
     width: 0;
     animation: draw-underline 0.8s ease-out forwards;
     animation-delay: 0.3s;
@@ -350,7 +350,8 @@ body {
 /* Summary Page - 높이 원래대로 */
 .summary-page {
     background: transparent;
-    color: white;
+    color: rgba(50, 50, 50, 0.9);
+    background: none;
     padding: 140px 80px; /* 패딩 조정 */
     min-height: var(--page-height);
     display: flex;
@@ -358,17 +359,25 @@ body {
     align-items: center;
 }
 
+.summary-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.page-number {
+    display: none;
+}
+
 /* summary-container가 아닌 card-container 사용 */
 .card-container {
     width: 100%;
-    max-width: 1400px; /* 최대 너비 증가 */
-    margin: 0 auto;
+    max-width: 1400px;
+    color: rgba(50, 50, 50, 0.9);
     animation: slideUp 0.8s ease-out;
-    background: rgba(20, 20, 20, 0.5);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 30px;
-    padding: 80px; /* 패딩 증가 */
+    padding: 80px;
 }
 
 .summary-header-section {
@@ -380,42 +389,36 @@ body {
     font-size: 4.5rem; /* 크기 증가 */
     font-weight: 900;
     margin-bottom: 20px; /* 여백 증가 */
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(50, 50, 50, 0.9);
 }
 
 .summary-date {
     font-size: 2rem; /* 크기 증가 */
     margin-bottom: 50px; /* 여백 증가 */
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(50, 50, 50, 0.8);
 }
 
 .summary-subtitle { 
     font-size: 2.5rem; /* 크기 증가 */
     font-weight: 700;
     margin-bottom: 40px; /* 여백 증가 */
-    border-left: 5px solid rgba(255, 255, 255, 0.5); /* 두께 증가 */
+    border-left: 5px solid rgba(50, 50, 50, 0.5); /* 두께 증가 */
     padding-left: 25px; /* 여백 증가 */
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.summary-list { 
-    display: flex; /* flex로 변경 */
-    flex-direction: column; /* 세로 정렬 */
-    gap: 25px; /* 간격 증가 */
+    color: rgba(50, 50, 50, 0.9);
 }
 
 .summary-item { 
     display: flex; 
     align-items: center; 
     font-size: 2rem; /* 글자 크기 증가 */
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(50, 50, 50, 0.1);
     padding: 25px 35px; /* 패딩 증가 */
     border-radius: 20px; /*- радиус границ */
     transition: all 0.3s ease;
 }
 
 .summary-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(50, 50, 50, 0.15);
     transform: translateX(10px);
 }
 
@@ -425,8 +428,8 @@ body {
 
 .summary-number { 
     font-weight: bold;
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    background-color: rgba(50, 50, 50, 0.2);
+    color: rgba(50, 50, 50, 0.9);
     min-width: 55px; /* 크기 증가 */
     height: 55px; /* 크기 증가 */
     border-radius: 50%;
@@ -439,7 +442,7 @@ body {
 
 .summary-title {
     flex: 1;
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(50, 50, 50, 0.9);
     font-weight: 600;
     font-size: 1.8rem; /* 글자 크기 조정 */
     line-height: 1.5; /* 줄 간격 추가 */
@@ -449,21 +452,17 @@ body {
     margin-top: 60px; /* 여백 증가 */
     text-align: center;
     font-size: 1.25rem; /* 크기 증가 */
-    color: rgba(255, 255, 255, 0.7);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(50, 50, 50, 0.7);
+    border-top: 1px solid rgba(50, 50, 50, 0.2);
     padding-top: 40px; /* 여백 증가 */
 }
 
 .summary-source {
     margin-top: 10px;
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(50, 50, 50, 0.6);
 }
 
-/* Common */
-.page-number { 
-    display: none;
-} 
 
 /* Responsive - 브레이크포인트 조정 */
 @media (max-width: 2200px) { /* 1열로 변경하는 기준을 2200px로 상향 */
@@ -471,11 +470,23 @@ body {
         padding: 100px 150px;
     }
     
-    .news-container {
+    .news-container,
+    .summary-list {
         grid-template-columns: 1fr; /* 1열로 변경 */
+    }
+
+    .news-container {
         gap: 50px;
         width: 80%;
         max-width: 1000px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 200px;
+        height: 200px;
+        bottom: -80px;
+        right: -80px;
     }
     
     .news-item {
@@ -490,12 +501,49 @@ body {
     .news-description {
         font-size: 2rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 4.25rem;
+    }
+    
+    .summary-date {
+        font-size: 1.875rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 2.25rem;
+    }
+    
+    .summary-item {
+        font-size: 1.875rem;
+    }
+    
+    .summary-title {
+        font-size: 1.625rem;
+    }
+    
+    .summary-number {
+        font-size: 1.625rem;
+    }
+    
+    .summary-footer {
+        font-size: 1.2rem;
+    }
 }
 
 @media (max-width: 1800px) {
     .news-container {
         width: 85%;
         max-width: 900px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 180px;
+        height: 180px;
+        bottom: -70px;
+        right: -70px;
     }
     
     .news-title {
@@ -505,12 +553,49 @@ body {
     .news-description {
         font-size: 1.875rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 4rem;
+    }
+    
+    .summary-date {
+        font-size: 1.75rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 2.125rem;
+    }
+    
+    .summary-item {
+        font-size: 1.75rem;
+    }
+    
+    .summary-title {
+        font-size: 1.5rem;
+    }
+    
+    .summary-number {
+        font-size: 1.5rem;
+    }
+    
+    .summary-footer {
+        font-size: 1.125rem;
+    }
 }
 
 @media (max-width: 1600px) {
     .news-container {
         width: 90%;
         max-width: 800px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 160px;
+        height: 160px;
+        bottom: -60px;
+        right: -60px;
     }
     
     .news-title {
@@ -520,12 +605,49 @@ body {
     .news-description {
         font-size: 1.75rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3.75rem;
+    }
+    
+    .summary-date {
+        font-size: 1.625rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 2rem;
+    }
+    
+    .summary-item {
+        font-size: 1.625rem;
+    }
+    
+    .summary-title {
+        font-size: 1.375rem;
+    }
+    
+    .summary-number {
+        font-size: 1.375rem;
+    }
+    
+    .summary-footer {
+        font-size: 1.0625rem;
+    }
 }
 
 @media (max-width: 1400px) { /* 992px에서 1400px로 증가 */
     .news-container {
         width: 85%;
         max-width: 800px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 140px;
+        height: 140px;
+        bottom: -50px;
+        right: -50px;
     }
     
     .title-main {
@@ -539,6 +661,35 @@ body {
     .news-description {
         font-size: 1.75rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3.5rem;
+    }
+    
+    .summary-date {
+        font-size: 1.5rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.875rem;
+    }
+    
+    .summary-item {
+        font-size: 1.5rem;
+    }
+    
+    .summary-title {
+        font-size: 1.25rem;
+    }
+    
+    .summary-number {
+        font-size: 1.25rem;
+    }
+    
+    .summary-footer {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 1200px) {
@@ -549,6 +700,14 @@ body {
     .news-container {
         width: 90%;
         max-width: 700px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 120px;
+        height: 120px;
+        bottom: -40px;
+        right: -40px;
     }
     
     .news-item {
@@ -562,6 +721,39 @@ body {
     .news-description {
         font-size: 1.625rem;
     }
+    
+    .summary-header-section {
+        font-size: 1.5rem;
+    }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3.25rem;
+    }
+    
+    .summary-date {
+        font-size: 1.375rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.75rem;
+    }
+    
+    .summary-item {
+        font-size: 1.375rem;
+    }
+    
+    .summary-title {
+        font-size: 1.125rem;
+    }
+    
+    .summary-number {
+        font-size: 1.125rem;
+    }
+    
+    .summary-footer {
+        font-size: 0.9375rem;
+    }
 }
 
 @media (max-width: 992px) {
@@ -572,6 +764,14 @@ body {
     .news-container {
         width: 95%;
         max-width: 650px;
+    }
+    
+    /* 캐릭터 크기 및 위치 조정 */
+    .page-character {
+        width: 100px;
+        height: 100px;
+        bottom: -30px;
+        right: -30px;
     }
     
     .title-main {
@@ -586,6 +786,42 @@ body {
     .news-description {
         font-size: 1.5rem;
     }
+    
+    .page-character {
+        width: 150px;
+        height: 150px;
+    }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3rem;
+    }
+    
+    .summary-date {
+        font-size: 1.25rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.625rem;
+    }
+    
+    .summary-item {
+        font-size: 1.25rem;
+    }
+    
+    .summary-title {
+        font-size: 1rem;
+    }
+    
+    .summary-number {
+        font-size: 1rem;
+        min-width: 45px;
+        height: 45px;
+    }
+    
+    .summary-footer {
+        font-size: 0.875rem;
+    }
 }
 
 @media (max-width: 768px) {
@@ -593,6 +829,13 @@ body {
         height: auto;
         min-height: 100vh;
         padding: 20px;
+    }
+    
+    .page-character {
+        width: 80px;
+        height: 80px;
+        bottom: -20px;
+        right: -20px;
     }
     
     .cover-container {
@@ -663,13 +906,69 @@ body {
         padding: 30px 20px;
     }
     
+    /* 요약 페이지 카드 컨테이너 모바일 조정 */
+    .card-container {
+        width: 100%;
+        max-width: none;
+        padding: 20px 15px;
+        border-radius: 15px;
+    }
+    
+    .summary-header-section {
+        margin-bottom: 30px;
+    }
+    
+    .summary-list {
+        gap: 15px;
+    }
+    
     .summary-main-title {
         font-size: 2.75rem;
+    }
+    
+    .summary-date {
+        font-size: 1.125rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.5rem;
+        border-left-width: 3px;
+        padding-left: 15px;
+        margin-bottom: 25px;
     }
     
     .summary-item {
         font-size: 1.125rem;
         padding: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .summary-header {
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .summary-title {
+        font-size: 0.9375rem;
+        word-break: break-word;
+    }
+    
+    .summary-number {
+        font-size: 0.875rem;
+        min-width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+    
+    .summary-footer {
+        font-size: 0.8125rem;
+        margin-top: 40px;
+        padding-top: 25px;
+    }
+    
+    .summary-source {
+        font-size: 0.75rem;
     }
 }
 
@@ -677,7 +976,6 @@ body {
     .page {
         padding: 15px;
     }
-    
     .title-main {
         font-size: 3rem;
         border-bottom-width: 8px;
@@ -716,6 +1014,66 @@ body {
     .summary-container {
         width: 100%;
     }
+    
+    /* 요약 페이지 모바일 최적화 */
+    .card-container {
+        width: 100%;
+        max-width: none;
+        padding: 20px 15px;
+        border-radius: 15px;
+    }
+    
+    .summary-list {
+        gap: 10px;
+    }
+    
+    .summary-item {
+        padding: 10px 15px;
+        border-radius: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .summary-header {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 2.25rem;
+    }
+    
+    .summary-date {
+        font-size: 1rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.25rem;
+    }
+    
+    .summary-item {
+        font-size: 1rem;
+        padding: 12px;
+    }
+    
+    .summary-title {
+        font-size: 0.875rem;
+    }
+    
+    .summary-number {
+        font-size: 0.8125rem;
+        min-width: 35px;
+        height: 35px;
+    }
+    
+    .summary-footer {
+        font-size: 0.75rem;
+    }
+    
+    .summary-source {
+        font-size: 0.6875rem;
+    }
 } 
 
 /* Responsive - 1600px 이상에서는 더 크게 */
@@ -734,6 +1092,14 @@ body {
     
     .news-category {
         font-size: 1.5rem;
+    }
+    
+    /* 캐릭터 큰 화면에서 원래 크기 유지 */
+    .page-character {
+        width: 250px;
+        height: 250px;
+        bottom: -100px;
+        right: -100px;
     }
 } 
 

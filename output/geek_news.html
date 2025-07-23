@@ -3,6 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="모드뉴스">
+    <meta name="keywords" content="모드뉴스, 모드, 뉴스, 모드뉴스 소식, 모드뉴스 소식 모음, 모드뉴스 소식 모음 모음, 모드뉴스 소식 모음 모음 모음">
+    <meta name="author" content="모드뉴스">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="google" content="notranslate">
+    <meta name="google-site-verification" content="google-site-verification=google-site-verification">
+    <meta name="google-site-verification" content="google-site-verification">
+    <!-- 이미지 -->
+    <link rel="icon" href="http://15.165.73.31:8000/favicon.ico">
+    <!-- 썸네일 -->
+    <!-- 메타 태그 -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="모드뉴스">
+    <meta name="twitter:description" content="모드뉴스">
+    <meta name="twitter:image" content="http://15.165.73.31:8000/image">
+    <meta name="msapplication-TileColor" content="#da532c">
     <title>모드뉴스</title>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -173,7 +190,7 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 60px;
     width: 100%;
-    max-width: 2400px;
+    max-width: 2400px; /* 사용자 수정 반영 */
     animation: slideUp 0.8s ease-out;
     z-index: 1; /* 캐릭터 위에 오도록 */
     position: relative; /* z-index 적용 위해 */
@@ -307,7 +324,7 @@ body {
     bottom: 2px; /* 텍스트와 겹치도록 위치 조정 */
     left: 0;
     height: 50%; /* 형광펜 두께 */
-    background-color: rgba(255, 229, 102, 0.75); /* 옅은 노란색, 투명도 조정 */
+    background-color: rgba(255, 229, 102, 0.55); /* 사용자 수정 반영 */
     width: 0;
     animation: draw-underline 0.8s ease-out forwards;
     animation-delay: 0.3s;
@@ -357,7 +374,8 @@ body {
 /* Summary Page - 높이 원래대로 */
 .summary-page {
     background: transparent;
-    color: white;
+    color: rgba(50, 50, 50, 0.9);
+    background: none;
     padding: 140px 80px; /* 패딩 조정 */
     min-height: var(--page-height);
     display: flex;
@@ -365,17 +383,25 @@ body {
     align-items: center;
 }
 
+.summary-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.page-number {
+    display: none;
+}
+
 /* summary-container가 아닌 card-container 사용 */
 .card-container {
     width: 100%;
-    max-width: 1400px; /* 최대 너비 증가 */
-    margin: 0 auto;
+    max-width: 1400px;
+    color: rgba(50, 50, 50, 0.9);
     animation: slideUp 0.8s ease-out;
-    background: rgba(20, 20, 20, 0.5);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 30px;
-    padding: 80px; /* 패딩 증가 */
+    padding: 80px;
 }
 
 .summary-header-section {
@@ -387,42 +413,36 @@ body {
     font-size: 4.5rem; /* 크기 증가 */
     font-weight: 900;
     margin-bottom: 20px; /* 여백 증가 */
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(50, 50, 50, 0.9);
 }
 
 .summary-date {
     font-size: 2rem; /* 크기 증가 */
     margin-bottom: 50px; /* 여백 증가 */
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(50, 50, 50, 0.8);
 }
 
 .summary-subtitle { 
     font-size: 2.5rem; /* 크기 증가 */
     font-weight: 700;
     margin-bottom: 40px; /* 여백 증가 */
-    border-left: 5px solid rgba(255, 255, 255, 0.5); /* 두께 증가 */
+    border-left: 5px solid rgba(50, 50, 50, 0.5); /* 두께 증가 */
     padding-left: 25px; /* 여백 증가 */
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.summary-list { 
-    display: flex; /* flex로 변경 */
-    flex-direction: column; /* 세로 정렬 */
-    gap: 25px; /* 간격 증가 */
+    color: rgba(50, 50, 50, 0.9);
 }
 
 .summary-item { 
     display: flex; 
     align-items: center; 
     font-size: 2rem; /* 글자 크기 증가 */
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(50, 50, 50, 0.1);
     padding: 25px 35px; /* 패딩 증가 */
     border-radius: 20px; /*- радиус границ */
     transition: all 0.3s ease;
 }
 
 .summary-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(50, 50, 50, 0.15);
     transform: translateX(10px);
 }
 
@@ -432,8 +452,8 @@ body {
 
 .summary-number { 
     font-weight: bold;
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    background-color: rgba(50, 50, 50, 0.2);
+    color: rgba(50, 50, 50, 0.9);
     min-width: 55px; /* 크기 증가 */
     height: 55px; /* 크기 증가 */
     border-radius: 50%;
@@ -446,7 +466,7 @@ body {
 
 .summary-title {
     flex: 1;
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(50, 50, 50, 0.9);
     font-weight: 600;
     font-size: 1.8rem; /* 글자 크기 조정 */
     line-height: 1.5; /* 줄 간격 추가 */
@@ -456,21 +476,17 @@ body {
     margin-top: 60px; /* 여백 증가 */
     text-align: center;
     font-size: 1.25rem; /* 크기 증가 */
-    color: rgba(255, 255, 255, 0.7);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(50, 50, 50, 0.7);
+    border-top: 1px solid rgba(50, 50, 50, 0.2);
     padding-top: 40px; /* 여백 증가 */
 }
 
 .summary-source {
     margin-top: 10px;
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(50, 50, 50, 0.6);
 }
 
-/* Common */
-.page-number { 
-    display: none;
-} 
 
 /* Responsive - 브레이크포인트 조정 */
 @media (max-width: 2200px) { /* 1열로 변경하는 기준을 2200px로 상향 */
@@ -478,11 +494,23 @@ body {
         padding: 100px 150px;
     }
     
-    .news-container {
+    .news-container,
+    .summary-list {
         grid-template-columns: 1fr; /* 1열로 변경 */
+    }
+
+    .news-container {
         gap: 50px;
         width: 80%;
         max-width: 1000px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 200px;
+        height: 200px;
+        bottom: -80px;
+        right: -80px;
     }
     
     .news-item {
@@ -497,12 +525,49 @@ body {
     .news-description {
         font-size: 2rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 4.25rem;
+    }
+    
+    .summary-date {
+        font-size: 1.875rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 2.25rem;
+    }
+    
+    .summary-item {
+        font-size: 1.875rem;
+    }
+    
+    .summary-title {
+        font-size: 1.625rem;
+    }
+    
+    .summary-number {
+        font-size: 1.625rem;
+    }
+    
+    .summary-footer {
+        font-size: 1.2rem;
+    }
 }
 
 @media (max-width: 1800px) {
     .news-container {
         width: 85%;
         max-width: 900px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 180px;
+        height: 180px;
+        bottom: -70px;
+        right: -70px;
     }
     
     .news-title {
@@ -512,12 +577,49 @@ body {
     .news-description {
         font-size: 1.875rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 4rem;
+    }
+    
+    .summary-date {
+        font-size: 1.75rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 2.125rem;
+    }
+    
+    .summary-item {
+        font-size: 1.75rem;
+    }
+    
+    .summary-title {
+        font-size: 1.5rem;
+    }
+    
+    .summary-number {
+        font-size: 1.5rem;
+    }
+    
+    .summary-footer {
+        font-size: 1.125rem;
+    }
 }
 
 @media (max-width: 1600px) {
     .news-container {
         width: 90%;
         max-width: 800px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 160px;
+        height: 160px;
+        bottom: -60px;
+        right: -60px;
     }
     
     .news-title {
@@ -527,12 +629,49 @@ body {
     .news-description {
         font-size: 1.75rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3.75rem;
+    }
+    
+    .summary-date {
+        font-size: 1.625rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 2rem;
+    }
+    
+    .summary-item {
+        font-size: 1.625rem;
+    }
+    
+    .summary-title {
+        font-size: 1.375rem;
+    }
+    
+    .summary-number {
+        font-size: 1.375rem;
+    }
+    
+    .summary-footer {
+        font-size: 1.0625rem;
+    }
 }
 
 @media (max-width: 1400px) { /* 992px에서 1400px로 증가 */
     .news-container {
         width: 85%;
         max-width: 800px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 140px;
+        height: 140px;
+        bottom: -50px;
+        right: -50px;
     }
     
     .title-main {
@@ -546,6 +685,35 @@ body {
     .news-description {
         font-size: 1.75rem;
     }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3.5rem;
+    }
+    
+    .summary-date {
+        font-size: 1.5rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.875rem;
+    }
+    
+    .summary-item {
+        font-size: 1.5rem;
+    }
+    
+    .summary-title {
+        font-size: 1.25rem;
+    }
+    
+    .summary-number {
+        font-size: 1.25rem;
+    }
+    
+    .summary-footer {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 1200px) {
@@ -556,6 +724,14 @@ body {
     .news-container {
         width: 90%;
         max-width: 700px;
+    }
+    
+    /* 캐릭터 크기 조정 */
+    .page-character {
+        width: 120px;
+        height: 120px;
+        bottom: -40px;
+        right: -40px;
     }
     
     .news-item {
@@ -569,6 +745,39 @@ body {
     .news-description {
         font-size: 1.625rem;
     }
+    
+    .summary-header-section {
+        font-size: 1.5rem;
+    }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3.25rem;
+    }
+    
+    .summary-date {
+        font-size: 1.375rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.75rem;
+    }
+    
+    .summary-item {
+        font-size: 1.375rem;
+    }
+    
+    .summary-title {
+        font-size: 1.125rem;
+    }
+    
+    .summary-number {
+        font-size: 1.125rem;
+    }
+    
+    .summary-footer {
+        font-size: 0.9375rem;
+    }
 }
 
 @media (max-width: 992px) {
@@ -579,6 +788,14 @@ body {
     .news-container {
         width: 95%;
         max-width: 650px;
+    }
+    
+    /* 캐릭터 크기 및 위치 조정 */
+    .page-character {
+        width: 100px;
+        height: 100px;
+        bottom: -30px;
+        right: -30px;
     }
     
     .title-main {
@@ -593,6 +810,42 @@ body {
     .news-description {
         font-size: 1.5rem;
     }
+    
+    .page-character {
+        width: 150px;
+        height: 150px;
+    }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 3rem;
+    }
+    
+    .summary-date {
+        font-size: 1.25rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.625rem;
+    }
+    
+    .summary-item {
+        font-size: 1.25rem;
+    }
+    
+    .summary-title {
+        font-size: 1rem;
+    }
+    
+    .summary-number {
+        font-size: 1rem;
+        min-width: 45px;
+        height: 45px;
+    }
+    
+    .summary-footer {
+        font-size: 0.875rem;
+    }
 }
 
 @media (max-width: 768px) {
@@ -600,6 +853,13 @@ body {
         height: auto;
         min-height: 100vh;
         padding: 20px;
+    }
+    
+    .page-character {
+        width: 80px;
+        height: 80px;
+        bottom: -20px;
+        right: -20px;
     }
     
     .cover-container {
@@ -670,13 +930,69 @@ body {
         padding: 30px 20px;
     }
     
+    /* 요약 페이지 카드 컨테이너 모바일 조정 */
+    .card-container {
+        width: 100%;
+        max-width: none;
+        padding: 20px 15px;
+        border-radius: 15px;
+    }
+    
+    .summary-header-section {
+        margin-bottom: 30px;
+    }
+    
+    .summary-list {
+        gap: 15px;
+    }
+    
     .summary-main-title {
         font-size: 2.75rem;
+    }
+    
+    .summary-date {
+        font-size: 1.125rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.5rem;
+        border-left-width: 3px;
+        padding-left: 15px;
+        margin-bottom: 25px;
     }
     
     .summary-item {
         font-size: 1.125rem;
         padding: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .summary-header {
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .summary-title {
+        font-size: 0.9375rem;
+        word-break: break-word;
+    }
+    
+    .summary-number {
+        font-size: 0.875rem;
+        min-width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+    
+    .summary-footer {
+        font-size: 0.8125rem;
+        margin-top: 40px;
+        padding-top: 25px;
+    }
+    
+    .summary-source {
+        font-size: 0.75rem;
     }
 }
 
@@ -684,7 +1000,6 @@ body {
     .page {
         padding: 15px;
     }
-    
     .title-main {
         font-size: 3rem;
         border-bottom-width: 8px;
@@ -723,6 +1038,66 @@ body {
     .summary-container {
         width: 100%;
     }
+    
+    /* 요약 페이지 모바일 최적화 */
+    .card-container {
+        width: 100%;
+        max-width: none;
+        padding: 20px 15px;
+        border-radius: 15px;
+    }
+    
+    .summary-list {
+        gap: 10px;
+    }
+    
+    .summary-item {
+        padding: 10px 15px;
+        border-radius: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .summary-header {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    /* Summary 폰트 크기 추가 */
+    .summary-main-title {
+        font-size: 2.25rem;
+    }
+    
+    .summary-date {
+        font-size: 1rem;
+    }
+    
+    .summary-subtitle {
+        font-size: 1.25rem;
+    }
+    
+    .summary-item {
+        font-size: 1rem;
+        padding: 12px;
+    }
+    
+    .summary-title {
+        font-size: 0.875rem;
+    }
+    
+    .summary-number {
+        font-size: 0.8125rem;
+        min-width: 35px;
+        height: 35px;
+    }
+    
+    .summary-footer {
+        font-size: 0.75rem;
+    }
+    
+    .summary-source {
+        font-size: 0.6875rem;
+    }
 } 
 
 /* Responsive - 1600px 이상에서는 더 크게 */
@@ -741,6 +1116,14 @@ body {
     
     .news-category {
         font-size: 1.5rem;
+    }
+    
+    /* 캐릭터 큰 화면에서 원래 크기 유지 */
+    .page-character {
+        width: 250px;
+        height: 250px;
+        bottom: -100px;
+        right: -100px;
     }
 } 
 
@@ -801,7 +1184,7 @@ body {
                             <span class="news-category tech">기술</span>
                         </div>
                         <h2 class="news-title"><span>24시간 만에 10억 웹페이지를 크롤링한 2025년형 대규모 크롤러 구축기</span></h2>
-                        <p class="news-description">최신 웹 크롤링 시스템을 통해 24시간 만에 10억 개의 웹페이지를 효율적으로 수집하며, CPU와 SSL이 주요 병목으로 드러난 가운데, HTML 파싱만으로도 많은 페이지에 접근 가능하다는 사실을 확인하고 향후 JS 렌더링 기반의 대규모 크롤링 연구 필요성을 강조했습니다.</p>
+                        <p class="news-description">10억 개의 웹페이지를 24시간 만에 크롤링한 경험을 통해, 현대적인 웹 크롤링 시스템 설계와 비용 효율성을 극대화한 방법을 공유하며, 자바스크립트 없이도 많은 페이지에 접근 가능하다는 사실을 확인했습니다.</p>
                         <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22118" target="_blank">https://news.hada.io/topic?id=22118</a></div><div class="link-item"><span class="link-label">원문:</span><a href="https://andrewkchan.dev/posts/crawler.html" target="_blank">https://andrewkchan.dev/posts/crawler.html</a></div></div>
                         <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/2.png" class="page-character" alt="페이지 캐릭터" />
                     </div>
@@ -811,7 +1194,7 @@ body {
                             <span class="news-category blog">블로그</span>
                         </div>
                         <h2 class="news-title"><span>왜 사실만으로는 생각이 바뀌지 않는가 — "구조가 답이다"</span></h2>
-                        <p class="news-description">사회적 권력과 신념 체계는 단순한 사실로 바뀌지 않으며, 각자의 구조적 틀에서 공격과 방어가 이루어지는 가운데, 신념의 복원력과 연결성을 강화해야만 진정한 변화와 저항이 가능하답니다.</p>
+                        <p class="news-description">사회적 권력과 신념 체계는 단순한 사실로 변화하지 않으며, 구조적 연결망을 통해 서로의 세계관을 지키려는 경쟁이 이루어지는 만큼, 우리는 자신의 신념 구조를 능동적으로 설계하고 강화해야 한다는 점이 중요합니다.</p>
                         <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22125" target="_blank">https://news.hada.io/topic?id=22125</a></div><div class="link-item"><span class="link-label">블로그:</span><a href="https://vasily.cc/blog/facts-dont-change-minds/" target="_blank">https://vasily.cc/blog/facts-dont-change-minds/</a></div></div>
                         <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/3.png" class="page-character" alt="페이지 캐릭터" />
                     </div>
@@ -828,7 +1211,7 @@ body {
                             <span class="news-category tech">기술</span>
                         </div>
                         <h2 class="news-title"><span>Show GN: KoDarkBench : 어떤 K-LLM이 가장 음침할까?</span></h2>
-                        <p class="news-description">KoDarkBench는 한국의 상황에 맞춰 LLM의 다크 패턴을 평가하는 DarkBench의 한국어 버전을 번역하고 질문을 수정했으며, 평가 결과 업스테이지의 Solar Pro 2와 KT 믿음 2.0 모델이 '해로운 응답 생성'에서 우수한 성과를 보인 반면, LG 엑사</p>
+                        <p class="news-description">KoDarkBench가 한국 상황에 맞춰 LLM의 다크 패턴을 평가한 결과, 업스테이지의 Solar Pro 2와 KT 믿음 2.0 모델이 해로운 응답 생성을 거의 하지 않는 반면, LG 엑사원과 SKT A.X 모델은 취약점을 보였으니, 더 자세한 내용은 깃허</p>
                         <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22130" target="_blank">https://news.hada.io/topic?id=22130</a></div><div class="link-item"><span class="link-label">원문:</span><a href="topic?id=22130" target="_blank">topic?id=22130</a></div></div>
                         <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/4.png" class="page-character" alt="페이지 캐릭터" />
                     </div>
@@ -838,7 +1221,7 @@ body {
                             <span class="news-category blog">블로그</span>
                         </div>
                         <h2 class="news-title"><span>RAG에서 문서 파싱은 필요 없음: 이미지만 사용하세요</span></h2>
-                        <p class="news-description">Morphik은 ColPali 모델을 활용해 복잡한 문서에서 정보를 보다 정확하고 효율적으로 추출할 수 있는 새로운 비주얼 문서 임베딩 방식을 개발하여, 기존의 OCR과 파싱 방식의 한계를 극복하고, 향후 멀티문서 추론과 전문가급 해석을 목표로 하고 있습니다.</p>
+                        <p class="news-description">Morphik은 ColPali 모델을 활용해 복잡한 문서에서 정보 손실 없이 시각적 맥락을 이해하며, 기존 방식보다 월등한 정확도로 문서 검색 속도를 향상시키고, 앞으로는 멀티문서 추론과 자동화된 업무 처리를 목표로 하고 있습니다.</p>
                         <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22123" target="_blank">https://news.hada.io/topic?id=22123</a></div><div class="link-item"><span class="link-label">블로그:</span><a href="https://www.morphik.ai/blog/stop-parsing-docs" target="_blank">https://www.morphik.ai/blog/stop-parsing-docs</a></div></div>
                         <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/5.png" class="page-character" alt="페이지 캐릭터" />
                     </div>
@@ -855,7 +1238,7 @@ body {
                             <span class="news-category tech">기술</span>
                         </div>
                         <h2 class="news-title"><span>TODO는 실제로 '처리하기 위한 것'이 아님</span></h2>
-                        <p class="news-description">TODO 주석은 단순히 완료해야 할 목록이 아니라, 코드 작성 당시의 맥락과 아이디어를 기록해 미래의 코드 리더와 소통하는 중요한 역할을 하니, 무조건 처리하기보다는 그 가치를 이해하는 것이 더 중요하답니다.</p>
+                        <p class="news-description">TODO 주석은 단순히 완료해야 할 목록이 아닌, 코드 작성 당시의 맥락과 아이디어를 기록하여 미래의 유지보수와 협업에 도움을 주는 소중한 소통의 창구라는 점을 잊지 말아야 합니다.</p>
                         <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22128" target="_blank">https://news.hada.io/topic?id=22128</a></div><div class="link-item"><span class="link-label">원문:</span><a href="https://sophiebits.com/2025/07/21/todos-arent-for-doing" target="_blank">https://sophiebits.com/2025/07/21/todos-arent-for-doing</a></div></div>
                         <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/6.png" class="page-character" alt="페이지 캐릭터" />
                     </div>
@@ -865,7 +1248,7 @@ body {
                             <span class="news-category blog">블로그</span>
                         </div>
                         <h2 class="news-title"><span>AI 발전을 따라잡는 나만의 방법 (그리고 당신도 꼭 해야 하는 이유)</span></h2>
-                        <p class="news-description">생성형 AI는 빠르게 발전하는 기술로, 올바른 정보 습득이 중요하며, 신뢰할 수 있는 전문가와 출처를 꾸준히 팔로우하는 것이 필수적이에요.</p>
+                        <p class="news-description">생성형 AI는 빠르게 발전하고 있지만, 과소평가와 과대평가의 위험이 있어 신뢰할 수 있는 전문가와 출처를 꾸준히 팔로우하며 균형 잡힌 정보 파이프라인을 구축하는 것이 중요하답니다.</p>
                         <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22093" target="_blank">https://news.hada.io/topic?id=22093</a></div><div class="link-item"><span class="link-label">블로그:</span><a href="https://blog.nilenso.com/blog/2025/06/23/how-i-keep-up-with-ai-progress/" target="_blank">https://blog.nilenso.com/blog/2025/06/23/how-i-keep-up-with-ai-progress/</a></div></div>
                         <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/7.png" class="page-character" alt="페이지 캐릭터" />
                     </div>

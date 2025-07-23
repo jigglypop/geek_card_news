@@ -62,8 +62,8 @@ TEXT_CONFIG = {
     "speech_bubble_text": "뉴-스!",
     "summary_title": "GeekNews 요약",
     "summary_subtitle": "오늘의 주요 뉴스",
-    "summary_footer_text": "총 {count}개의 뉴스를 확인했어요",
-    "summary_source": "출처: GeekNews (news.hada.io)"
+    "summary_footer_text": "",
+    "summary_source": "GeekNews"
 }
 # 이모지 커스터마이징 설정
 EMOJI_CONFIG = {

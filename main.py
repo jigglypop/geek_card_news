@@ -514,13 +514,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=PATH_CONFIG["output_dir"]), name="static")
 
-@app.get("/", response_class=FileResponse)
+@app.get("/image", response_class=FileResponse)
 async def get_news_image_legacy():
     if not os.path.exists(generator.generated_image_path):
         return Response(content="뉴스 이미지를 찾을 수 없습니다. 생성 중일 수 있으니 잠시 후 다시 시도해주세요.", status_code=404)
     return FileResponse(generator.generated_image_path, media_type="image/png")
 
-@app.get("/news/html", response_class=FileResponse)
+@app.get("/news", response_class=FileResponse)
 async def get_news_html():
     if not os.path.exists(generator.generated_html_path):
         return Response(content="뉴스 HTML을 찾을 수 없습니다. 생성 중일 수 있으니 잠시 후 다시 시도해주세요.", status_code=404)
