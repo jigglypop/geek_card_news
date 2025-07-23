@@ -27,7 +27,10 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "apscheduler",
-    "openai"
+    "openai",
+    "requests",
+    "aioboto3",
+    "boto3"
 ]
 
 [tool.hatch.build.targets.wheel]

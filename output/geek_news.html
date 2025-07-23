@@ -1,503 +1,792 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모드뉴스</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>오늘의 긱뉴스</title>
-            <style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
+:root {
+    --main-bg-color: #FE7474;
+    --text-white: rgba(255, 255, 255, 0.75);
+    --text-white-secondary: rgba(255, 255, 255, 0.65);
+    --page-height: 1080px;
+}
 
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-    background: #000;
+    font-family: 'Pretendard', sans-serif;
+    background: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
+}
+
+.page-wrapper {
+    width: 100%;
+    margin: 0 auto;
     color: #333;
-    overflow-x: hidden;
 }
 
-a {
-    color: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-a:hover {
-    color: #333;
-    text-decoration: underline;
-}
-
-
+/* Page layout 수정 */
 .page {
-    width: 1920px;
-    height: 1080px;
+    width: 100%;
+    min-height: var(--page-height);
     display: flex;
     flex-direction: column;
     position: relative;
-    page-break-after: always;
     box-sizing: border-box;
     overflow: hidden;
+    page-break-after: always;
+    justify-content: center;
+    align-items: center;
+    padding: 120px 200px; /* 위아래 여백 증가, 좌우 여백 감소 */
 }
 
-.card-container {
-    width: 100%;
-    height: 100%;
-    padding: 60px;
-    box-sizing: border-box;
-    position: relative;
-    display: flex;
-    flex-direction: column;
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* 첫장 스타일 */
+@keyframes draw-underline {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-40px); }
+    100% { transform: translateY(0); }
+}
+
+/* Cover Page - 높이 원래대로 */
 .cover {
-    background: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: var(--page-height);
 }
 
 .cover-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: 60px;
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
     text-align: center;
-}
-
-.cover-header {
-    margin-top: 120px;
-}
-
-.subtitle-small {
-    font-size: 32px;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-    font-weight: 400;
-    letter-spacing: 1px;
-}
-
-/* 뉴스 페이지 스타일 (모든 뉴스 페이지 동일) */
-.news-page {
-    background: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
-}
-
-/* 요약 페이지 스타일 */
-.summary-page {
-    background: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
-}
-
-.summary-page .card-container {
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 30px;
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 
-        0 20px 45px rgba(0,0,0,0.35), 
-        inset 0 0 45px rgba(255,255,255,0.12),
-        inset 0 0 0 1px rgba(255,255,255,0.28); /* 내부 테두리 */
-}
-
-.cover-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
     width: 100%;
+    height: 100%;
+    position: relative;
+    animation: slideUp 0.8s ease-out;
 }
 
-.text-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-}
-
-.title-sub {
-    font-size: 50px;
+.title-sub { 
+    font-size: 3rem;
     color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-    font-weight: 300;
-    letter-spacing: 2px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    font-weight: 500;
+    margin-bottom: 0;
 }
 
-.cover-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.title-main {
-    font-size: 200px;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 60px 0;
-    font-weight: 900;
-    text-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    letter-spacing: -3px;
-}
-
-.character-section {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* 데스크탑 제목 크기 증가 */
+.title-main { 
+    font-size: 9rem; 
+    font-weight: 900; 
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.2;
+    margin-top: 10px;
+    /* border-bottom: 25px solid white; */ /* 밑줄 애니메이션으로 대체 */
+    display: inline-block;
     position: relative;
 }
 
-.main-character {
-    max-width: 450px;
-    max-height: 450px;
-    object-fit: contain;
-    filter: drop-shadow(0 10px 25px rgba(0,0,0,0.3));
+.title-main > span {
+    position: relative;
+    display: inline-block;
+    z-index: 1; /* 형광펜이 텍스트 뒤에 오도록 z-index 설정 */
+}
+
+.title-main > span::after {
+    content: '';
+    position: absolute;
+    bottom: 5px; /* 텍스트와 겹치도록 위치 조정 */
+    left: 0;
+    height: 45%; /* 형광펜 두께 */
+    background-color: rgba(255, 229, 102, 0.75); /* 옅은 노란색, 투명도 조정 */
+    width: 0; /* 애니메이션 시작을 위해 너비 0 설정 */
+    animation: draw-underline 1s ease-out forwards;
+    animation-delay: 0.5s;
+    z-index: -1; /* 텍스트 뒤로 보내기 */
+}
+
+
+.main-character { 
+    max-width: 350px;
+    margin-top: 60px;
 }
 
 .qr-section {
     position: absolute;
-    top: 60px;
-    right: 60px;
+    top: 40px;
+    right: 40px;
 }
 
-.qr-code {
-    width: 150px;
-    height: 150px;
-    background: white;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+.qr-code { 
+    width: 120px; 
+    height: 120px; 
+    background: white; 
+    padding: 10px; 
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-}
-
-.decorative-elements {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.speech-bubble {
-    position: absolute;
-    top: 15%;
-    right: 15%;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 15px 25px;
-    border-radius: 25px;
-    font-size: 24px;
-    color: #333;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    animation: bounce 2s ease-in-out infinite;
-}
-
-.speech-bubble::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 30px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid rgba(255, 255, 255, 0.95);
-}
-
-.bubble-text {
-    font-weight: 700;
-    margin-left: 10px;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.lightbulb {
-    position: absolute;
-    top: 20%;
-    left: 10%;
-    font-size: 40px;
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { 
-        text-shadow: 0 0 5px #ffeb3b, 0 0 10px #ffeb3b, 0 0 15px #ffeb3b;
-        transform: rotate(-10deg);
-    }
-    to { 
-        text-shadow: 0 0 10px #ffeb3b, 0 0 20px #ffeb3b, 0 0 30px #ffeb3b;
-        transform: rotate(10deg);
-    }
-}
-
-.star {
-    position: absolute;
-    font-size: 30px;
-    color: #ffeb3b;
-    animation: twinkle 1.5s ease-in-out infinite;
-}
-
-.star1 { top: 10%; left: 20%; animation-delay: 0s; }
-.star2 { top: 30%; right: 20%; animation-delay: 0.5s; }
-.star3 { bottom: 20%; left: 15%; animation-delay: 1s; }
-
-@keyframes twinkle {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-}
-
-.news-header-section {
-    margin-bottom: 40px;
-    text-align: center;
-}
-
-.topic-category {
-    display: inline-block;
-    background: white;
-    color: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 20px;
-}
-
-.category-title {
-    font-size: 36px;
-    color: white;
-    text-align: center;
-    margin: 0;
-    font-weight: 700;
-}
-
-.news-content-section {
-    flex: 1;
+/* News Page */
+.news-page {
+    position: relative;
+    min-height: var(--page-height);
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    justify-content: center;
+    align-items: center;
+    padding: 120px 200px;
 }
 
-.news-body {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    padding: 50px;
-    border-radius: 20px;
+.page-container {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 }
 
-.news-title {
-    font-size: 48px;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: underline;
-    text-decoration-color: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
-    text-decoration-thickness: 2px;
-    text-decoration-style: solid;
-    text-underline-offset: 4px;
-    text-align: center;
-    line-height: 1.3;
-    margin: 0 0 20px 0;
-    word-break: keep-all;
-}
-
-.news-description {
-    font-size: 32px;
-    line-height: 1.6;
-    color: #333;
-    margin: 0;
-    word-break: keep-all;
-}
-
-.links-section {
-    margin-top: auto;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 20px;
-    border-radius: 15px;
-}
-
-.link-item {
-    margin-bottom: 12px;
-    font-size: 18px;
-    color: #333;
-}
-
-.link-label {
-    font-weight: 700;
-    margin-right: 10px;
-    color: #333;
-}
-
-.link-item a {
-    color: linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%);
-    text-decoration: none;
-    word-break: break-all;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.link-item a:hover {
-    color: #333;
-    text-decoration: underline;
+/* News container - 너비 증가 */
+.news-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    width: 100%;
+    max-width: 2400px;
+    animation: slideUp 0.8s ease-out;
+    z-index: 1; /* 캐릭터 위에 오도록 */
+    position: relative; /* z-index 적용 위해 */
 }
 
 .page-character {
     position: absolute;
-    bottom: 40px;
-    right: 40px;
-    max-width: 200px;
-    max-height: 200px;
+    bottom: -100px;
+    right: -100px;
+    z-index: 100;
+    width: 250px;
+    height: 250px;
     object-fit: contain;
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
-    animation: float 4s ease-in-out infinite;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+    z-index: 0;
+    animation: float 2s ease-in-out infinite;
+}
+
+/* 각 뉴스 아이템이 캐릭터 공간 확보 - 제거 */
+.news-item {
+    background: rgba(20, 20, 20, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 60px;
+    overflow: visible !important;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-white);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    min-height: 450px;
+    z-index: 10;
+}
+
+.news-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.news-item:hover img.item-character {
+    opacity: 1;
+    transform: scale(1.1) translate(-10px, -10px);
+}
+
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+
+.news-item-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.5);
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+
+/* Category 태그도 더 크게 */
+.news-category { 
+    font-size: 1.625rem; 
+    font-weight: bold;
+    padding: 12px 30px;
+    border-radius: 30px;
+    display: inline-block;
+    backdrop-filter: blur(5px);
+    margin-right: 20px; /* 번호와 간격 확보 */
+}
+
+.news-category.tech {
+    background: rgba(74, 144, 226, 0.25);
+    color: #87CEEB;
+}
+
+.news-category.dev {
+    background: rgba(152, 251, 152, 0.25);
+    color: #98FB98;
+}
+
+.news-category.ai {
+    background: rgba(255, 182, 193, 0.25);
+    color: #FFB6C1;
+}
+
+.news-category.blog {
+    background: rgba(221, 160, 221, 0.25);
+    color: #DDA0DD;
+}
+
+.news-category.video {
+    background: rgba(255, 160, 122, 0.25);
+    color: #FFA07A;
+}
+
+.news-category.data {
+    background: rgba(176, 224, 230, 0.25);
+    color: #B0E0E6;
+}
+
+/* 글씨 크기 더 크게 */
+.news-title { 
+    font-size: 3.5rem; 
+    font-weight: 700; 
+    margin: 0 0 40px 0;
+    line-height: 1.3;
+    flex-grow: 1;
+    color: rgba(255, 255, 255, 0.95);
+    position: relative;
+}
+
+.news-title > span {
+    position: relative;
+    display: inline-block;
+    z-index: 1; /* 형광펜이 텍스트 뒤에 오도록 z-index 설정 */
+}
+
+.news-title > span::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; /* 텍스트와 겹치도록 위치 조정 */
+    left: 0;
+    height: 50%; /* 형광펜 두께 */
+    background-color: rgba(255, 229, 102, 0.75); /* 옅은 노란색, 투명도 조정 */
+    width: 0;
+    animation: draw-underline 0.8s ease-out forwards;
+    animation-delay: 0.3s;
+    z-index: -1; /* 텍스트 뒤로 보내기 */
+}
+
+.news-description { 
+    font-size: 2.125rem; 
+    flex-grow: 1; 
+    line-height: 1.7;
+    margin-bottom: 45px;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+}
+
+.links { 
+    margin-top: auto; 
+    padding-top: 30px; 
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.625rem;
+}
+
+.link-item { 
+    margin-bottom: 20px; 
+    word-break: break-all;
+    line-height: 1.5;
+}
+
+.link-label { 
+    font-weight: bold; 
+    color: rgba(255, 255, 255, 0.9);
+    margin-right: 8px;
+}
+
+.link-item a { 
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.link-item a:hover {
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: underline;
+}
+
+/* Summary Page - 높이 원래대로 */
+.summary-page {
+    background: transparent;
+    color: white;
+    padding: 140px 80px; /* 패딩 조정 */
+    min-height: var(--page-height);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* summary-container가 아닌 card-container 사용 */
+.card-container {
+    width: 100%;
+    max-width: 1400px; /* 최대 너비 증가 */
+    margin: 0 auto;
+    animation: slideUp 0.8s ease-out;
+    background: rgba(20, 20, 20, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 80px; /* 패딩 증가 */
 }
 
 .summary-header-section {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 60px; /* 여백 증가 */
 }
 
-.summary-main-title {
-    font-size: 72px;
-    color: white;
-    margin: 0 0 20px 0;
+.summary-main-title { 
+    font-size: 4.5rem; /* 크기 증가 */
     font-weight: 900;
-    text-shadow: 0 6px 25px rgba(0,0,0,0.5);
+    margin-bottom: 20px; /* 여백 증가 */
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .summary-date {
-    font-size: 24px;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-    font-weight: 300;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    font-size: 2rem; /* 크기 증가 */
+    margin-bottom: 50px; /* 여백 증가 */
+    color: rgba(255, 255, 255, 0.8);
 }
 
-.summary-content {
-    flex: 1;
-}
-
-.summary-subtitle {
-    font-size: 36px;
-    color: white;
-    margin: 0 0 30px 0;
+.summary-subtitle { 
+    font-size: 2.5rem; /* 크기 증가 */
     font-weight: 700;
-    text-align: center;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    margin-bottom: 40px; /* 여백 증가 */
+    border-left: 5px solid rgba(255, 255, 255, 0.5); /* 두께 증가 */
+    padding-left: 25px; /* 여백 증가 */
+    color: rgba(255, 255, 255, 0.9);
 }
 
-.summary-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+.summary-list { 
+    display: flex; /* flex로 변경 */
+    flex-direction: column; /* 세로 정렬 */
+    gap: 25px; /* 간격 증가 */
 }
 
-.summary-item {
-    background: rgba(255, 255, 255, 0.18);
-    padding: 25px;
-    border-radius: 20px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
-        0 10px 25px rgba(0,0,0,0.3), 
-        inset 0 0 20px rgba(255,255,255,0.1),
-        inset 0 0 0 1px rgba(255,255,255,0.25); /* 내부 테두리 */
+.summary-item { 
+    display: flex; 
+    align-items: center; 
+    font-size: 2rem; /* 글자 크기 증가 */
+    background: rgba(255, 255, 255, 0.1);
+    padding: 25px 35px; /* 패딩 증가 */
+    border-radius: 20px; /*- радиус границ */
+    transition: all 0.3s ease;
+}
+
+.summary-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(10px);
 }
 
 .summary-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
+    margin-right: 25px; /* 간격 증가 */
 }
 
-.summary-number {
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    width: 40px;
-    height: 40px;
+.summary-number { 
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    min-width: 55px; /* 크기 증가 */
+    height: 55px; /* 크기 증가 */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 18px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-.summary-category {
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
-    padding: 6px 15px;
-    border-radius: 15px;
-    font-size: 14px;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    font-size: 1.75rem; /* 크기 증가 */
+    margin-right: 5px;
 }
 
 .summary-title {
-    font-size: 22px;
-    color: white;
-    margin: 0;
+    flex: 1;
+    color: rgba(255, 255, 255, 0.95);
     font-weight: 600;
-    line-height: 1.4;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    font-size: 1.8rem; /* 글자 크기 조정 */
+    line-height: 1.5; /* 줄 간격 추가 */
 }
 
 .summary-footer {
+    margin-top: 60px; /* 여백 증가 */
     text-align: center;
-    padding-top: 30px;
-    border-top: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.summary-footer p {
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 20px;
-    margin: 10px 0;
-    font-weight: 500;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    font-size: 1.25rem; /* 크기 증가 */
+    color: rgba(255, 255, 255, 0.7);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 40px; /* 여백 증가 */
 }
 
 .summary-source {
-    font-size: 18px !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-    font-weight: 300 !important;
+    margin-top: 10px;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
 }
 
-@media print {
-    body { 
-        margin: 0; 
-        background: white;
+/* Common */
+.page-number { 
+    display: none;
+} 
+
+/* Responsive - 브레이크포인트 조정 */
+@media (max-width: 2200px) { /* 1열로 변경하는 기준을 2200px로 상향 */
+    .page {
+        padding: 100px 150px;
     }
-    .page { 
-        page-break-after: always; 
-        margin: 0;
-        width: 1920px;
-        height: 1080px;
+    
+    .news-container {
+        grid-template-columns: 1fr; /* 1열로 변경 */
+        gap: 50px;
+        width: 80%;
+        max-width: 1000px;
     }
-} </style>
-        </head>
-        <body><div class="page cover">
+    
+    .news-item {
+        padding: 70px;
+        min-height: 400px;
+    }
+    
+    .news-title {
+        font-size: 3.25rem;
+    }
+    
+    .news-description {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 1800px) {
+    .news-container {
+        width: 85%;
+        max-width: 900px;
+    }
+    
+    .news-title {
+        font-size: 3rem;
+    }
+    
+    .news-description {
+        font-size: 1.875rem;
+    }
+}
+
+@media (max-width: 1600px) {
+    .news-container {
+        width: 90%;
+        max-width: 800px;
+    }
+    
+    .news-title {
+        font-size: 2.75rem;
+    }
+    
+    .news-description {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 1400px) { /* 992px에서 1400px로 증가 */
+    .news-container {
+        width: 85%;
+        max-width: 800px;
+    }
+    
+    .title-main {
+        font-size: 7rem;
+    }
+    
+    .news-title {
+        font-size: 2.75rem;
+    }
+    
+    .news-description {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .page {
+        padding: 80px 60px;
+    }
+    
+    .news-container {
+        width: 90%;
+        max-width: 700px;
+    }
+    
+    .news-item {
+        padding: 60px;
+    }
+    
+    .news-title {
+        font-size: 2.5rem;
+    }
+    
+    .news-description {
+        font-size: 1.625rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .page {
+        padding: 80px 60px;
+    }
+    
+    .news-container {
+        width: 95%;
+        max-width: 650px;
+    }
+    
+    .title-main {
+        font-size: 6rem;
+        border-bottom-width: 20px;
+    }
+    
+    .news-title {
+        font-size: 2.25rem;
+    }
+    
+    .news-description {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .page {
+        height: auto;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .cover-container {
+        padding-top: 40px;
+    }
+    
+    .title-sub {
+        font-size: 2rem;
+    }
+    
+    .title-main {
+        font-size: 4rem;
+        border-bottom-width: 10px;
+    }
+    
+    .main-character {
+        max-width: 220px;
+        margin-top: 40px;
+    }
+    
+    .qr-section {
+        top: 20px;
+        right: 20px;
+    }
+    
+    .qr-code {
+        width: 90px;
+        height: 90px;
+    }
+
+    .news-container {
+        width: 90%;
+    }
+    
+    .news-item {
+        padding: 25px;
+    }
+    
+    .news-category {
+        font-size: 0.875rem;
+        padding: 6px 14px;
+    }
+    
+    .news-title {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .news-description {
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 20px;
+    }
+    
+    .links {
+        font-size: 0.875rem;
+    }
+    
+    .page-number {
+        top: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+    
+    .summary-page {
+        padding: 30px 20px;
+    }
+    
+    .summary-main-title {
+        font-size: 2.75rem;
+    }
+    
+    .summary-item {
+        font-size: 1.125rem;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page {
+        padding: 15px;
+    }
+    
+    .title-main {
+        font-size: 3rem;
+        border-bottom-width: 8px;
+    }
+    
+    .main-character {
+        max-width: 180px;
+        margin-top: 30px;
+    }
+    
+    .qr-section {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-top: 30px;
+    }
+    
+    .news-item {
+        padding: 20px;
+        border-radius: 20px;
+    }
+    
+    .news-title {
+        font-size: 1.25rem;
+    }
+    
+    .news-description {
+        font-size: 0.9375rem;
+    }
+    
+    .link-item {
+        font-size: 0.8125rem;
+        margin-bottom: 8px;
+    }
+    
+    .summary-container {
+        width: 100%;
+    }
+} 
+
+/* Responsive - 1600px 이상에서는 더 크게 */
+@media (min-width: 1601px) {
+    .news-title {
+        font-size: 3rem;
+    }
+    
+    .news-description {
+        font-size: 1.875rem;
+    }
+    
+    .links {
+        font-size: 1.5rem;
+    }
+    
+    .news-category {
+        font-size: 1.5rem;
+    }
+} 
+
+/* 더 큰 화면에서 더 크게 */
+@media (min-width: 1920px) {
+    .title-main {
+        font-size: 10rem;
+    }
+    
+    .title-sub {
+        font-size: 3.5rem;
+    }
+    
+    .news-title {
+        font-size: 4rem;
+    }
+    
+    .news-description {
+        font-size: 2.5rem;
+    }
+    
+    .links {
+        font-size: 1.875rem;
+    }
+    
+    .news-category {
+        font-size: 1.875rem;
+    }
+    
+    .news-item {
+        padding: 80px;
+    }
+} 
+
+ 
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="page cover">
     <div class="cover-container">
         <div class="cover-header">
-            <p class="subtitle-small">모여봐요 개발자와 AI의 숲</p>
+            <div class="title-sub">모여봐요 개발자와 AI의 숲</div>
         </div>
         <div class="cover-main">
-            <div class="title-main">모드뉴스</div>
+            <div class="title-main"><span>모드뉴스</span></div>
             <div class="character-section">
                 <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/1.png" class="character main-character" alt="캐릭터" />
             </div>
@@ -505,95 +794,91 @@ a:hover {
         <div class="qr-section"><img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/QR.png" class="qr-code" alt="QR코드" /></div>
     </div>
 </div> <div class="page news-page">
-    <div class="card-container">
-        <div class="news-header-section">
-            <div class="topic-category">개발</div>
-            <h2 class="category-title">GeekNews #1</h2>
-        </div>
-        <div class="news-content-section">
-            <div class="news-title">Automatisch — Zapier 대체용 자동화 플랫폼 오픈소스</div>
-            <div class="news-body">
-                <div class="news-description">오픈소스 업무 자동화 도구는 다양한 서비스를 연결해 비즈니스 프로세스를 자동화 docker compose만으로 빠르게 설치 및 운영이 간단하며 GUI로 자동화 워크플로 구축이 가능하다.</div>
-            </div>
-            <div class="links-section">
-                <div class="link-item"><span class="link-label">토론:</span>https://news.hada.io/topic?id=21727</div><div class="link-item"><span class="link-label">GitHub:</span>https://github.com/automatisch/automatisch</div>
-            </div>
-        </div>
-        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/2.png" class="page-character" alt="캐릭터" />
+    <div class="page-container">
+        <div class="news-container">
+                    <div class="news-item">
+                        <div class="news-header">
+                            <span class="news-category tech">기술</span>
+                        </div>
+                        <h2 class="news-title"><span>24시간 만에 10억 웹페이지를 크롤링한 2025년형 대규모 크롤러 구축기</span></h2>
+                        <p class="news-description">최신 웹 크롤링 시스템을 통해 24시간 만에 10억 개의 웹페이지를 효율적으로 수집하며, CPU와 SSL이 주요 병목으로 드러난 가운데, HTML 파싱만으로도 많은 페이지에 접근 가능하다는 사실을 확인하고 향후 JS 렌더링 기반의 대규모 크롤링 연구 필요성을 강조했습니다.</p>
+                        <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22118" target="_blank">https://news.hada.io/topic?id=22118</a></div><div class="link-item"><span class="link-label">원문:</span><a href="https://andrewkchan.dev/posts/crawler.html" target="_blank">https://andrewkchan.dev/posts/crawler.html</a></div></div>
+                        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/2.png" class="page-character" alt="페이지 캐릭터" />
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-header">
+                            <span class="news-category blog">블로그</span>
+                        </div>
+                        <h2 class="news-title"><span>왜 사실만으로는 생각이 바뀌지 않는가 — "구조가 답이다"</span></h2>
+                        <p class="news-description">사회적 권력과 신념 체계는 단순한 사실로 바뀌지 않으며, 각자의 구조적 틀에서 공격과 방어가 이루어지는 가운데, 신념의 복원력과 연결성을 강화해야만 진정한 변화와 저항이 가능하답니다.</p>
+                        <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22125" target="_blank">https://news.hada.io/topic?id=22125</a></div><div class="link-item"><span class="link-label">블로그:</span><a href="https://vasily.cc/blog/facts-dont-change-minds/" target="_blank">https://vasily.cc/blog/facts-dont-change-minds/</a></div></div>
+                        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/3.png" class="page-character" alt="페이지 캐릭터" />
+                    </div>
+                </div>
+    </div>
+    <div class="page-footer">
+        <span class="page-number">1</span>
     </div>
 </div> <div class="page news-page">
-    <div class="card-container">
-        <div class="news-header-section">
-            <div class="topic-category">기술</div>
-            <h2 class="category-title">GeekNews #2</h2>
-        </div>
-        <div class="news-content-section">
-            <div class="news-title">많은 랜섬웨어 유형이 러시아어 키보드 설치 시 공격을 중단한다 (2021)</div>
-            <div class="news-body">
-                <div class="news-description">러시아 해커들이 싫어하는 간단한 보안 트릭 대부분의 랜섬웨어는 특정 가상 키보드가 설치된 PC에서는 설치되지 않도록 설계되어 있으며 키보드를 설치하면 공격을 피할 수 있다는 점이 트위터에서 화제가 되었다.</div>
-            </div>
-            <div class="links-section">
-                <div class="link-item"><span class="link-label">토론:</span>https://news.hada.io/topic?id=21732</div><div class="link-item"><span class="link-label">원문:</span>https://krebsonsecurity.com/2021/05/try-this-one-weird-trick-russian-hackers-hate/</div>
-            </div>
-        </div>
-        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/3.png" class="page-character" alt="캐릭터" />
+    <div class="page-container">
+        <div class="news-container">
+                    <div class="news-item">
+                        <div class="news-header">
+                            <span class="news-category tech">기술</span>
+                        </div>
+                        <h2 class="news-title"><span>Show GN: KoDarkBench : 어떤 K-LLM이 가장 음침할까?</span></h2>
+                        <p class="news-description">KoDarkBench는 한국의 상황에 맞춰 LLM의 다크 패턴을 평가하는 DarkBench의 한국어 버전을 번역하고 질문을 수정했으며, 평가 결과 업스테이지의 Solar Pro 2와 KT 믿음 2.0 모델이 '해로운 응답 생성'에서 우수한 성과를 보인 반면, LG 엑사</p>
+                        <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22130" target="_blank">https://news.hada.io/topic?id=22130</a></div><div class="link-item"><span class="link-label">원문:</span><a href="topic?id=22130" target="_blank">topic?id=22130</a></div></div>
+                        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/4.png" class="page-character" alt="페이지 캐릭터" />
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-header">
+                            <span class="news-category blog">블로그</span>
+                        </div>
+                        <h2 class="news-title"><span>RAG에서 문서 파싱은 필요 없음: 이미지만 사용하세요</span></h2>
+                        <p class="news-description">Morphik은 ColPali 모델을 활용해 복잡한 문서에서 정보를 보다 정확하고 효율적으로 추출할 수 있는 새로운 비주얼 문서 임베딩 방식을 개발하여, 기존의 OCR과 파싱 방식의 한계를 극복하고, 향후 멀티문서 추론과 전문가급 해석을 목표로 하고 있습니다.</p>
+                        <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22123" target="_blank">https://news.hada.io/topic?id=22123</a></div><div class="link-item"><span class="link-label">블로그:</span><a href="https://www.morphik.ai/blog/stop-parsing-docs" target="_blank">https://www.morphik.ai/blog/stop-parsing-docs</a></div></div>
+                        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/5.png" class="page-character" alt="페이지 캐릭터" />
+                    </div>
+                </div>
+    </div>
+    <div class="page-footer">
+        <span class="page-number">2</span>
     </div>
 </div> <div class="page news-page">
-    <div class="card-container">
-        <div class="news-header-section">
-            <div class="topic-category">기술</div>
-            <h2 class="category-title">GeekNews #3</h2>
-        </div>
-        <div class="news-content-section">
-            <div class="news-title">ECMAScript 2025가 공식 표준으로 승인됨</div>
-            <div class="news-body">
-                <div class="news-description">ECMAScript 2025가 공식 표준으로 승인되어 다양한 새로운 기능이 추가되었고 Import attributes와 JSON 모듈을 통해 비 JavaScript 리소스의 가져오기 방식을 개선했다.</div>
-            </div>
-            <div class="links-section">
-                <div class="link-item"><span class="link-label">토론:</span>https://news.hada.io/topic?id=21731</div><div class="link-item"><span class="link-label">원문:</span>https://2ality.com/2025/06/ecmascript-2025.html</div>
-            </div>
-        </div>
-        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/4.png" class="page-character" alt="캐릭터" />
+    <div class="page-container">
+        <div class="news-container">
+                    <div class="news-item">
+                        <div class="news-header">
+                            <span class="news-category tech">기술</span>
+                        </div>
+                        <h2 class="news-title"><span>TODO는 실제로 '처리하기 위한 것'이 아님</span></h2>
+                        <p class="news-description">TODO 주석은 단순히 완료해야 할 목록이 아니라, 코드 작성 당시의 맥락과 아이디어를 기록해 미래의 코드 리더와 소통하는 중요한 역할을 하니, 무조건 처리하기보다는 그 가치를 이해하는 것이 더 중요하답니다.</p>
+                        <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22128" target="_blank">https://news.hada.io/topic?id=22128</a></div><div class="link-item"><span class="link-label">원문:</span><a href="https://sophiebits.com/2025/07/21/todos-arent-for-doing" target="_blank">https://sophiebits.com/2025/07/21/todos-arent-for-doing</a></div></div>
+                        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/6.png" class="page-character" alt="페이지 캐릭터" />
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-header">
+                            <span class="news-category blog">블로그</span>
+                        </div>
+                        <h2 class="news-title"><span>AI 발전을 따라잡는 나만의 방법 (그리고 당신도 꼭 해야 하는 이유)</span></h2>
+                        <p class="news-description">생성형 AI는 빠르게 발전하는 기술로, 올바른 정보 습득이 중요하며, 신뢰할 수 있는 전문가와 출처를 꾸준히 팔로우하는 것이 필수적이에요.</p>
+                        <div class="links"><div class="link-item"><span class="link-label">토론:</span><a href="https://news.hada.io/topic?id=22093" target="_blank">https://news.hada.io/topic?id=22093</a></div><div class="link-item"><span class="link-label">블로그:</span><a href="https://blog.nilenso.com/blog/2025/06/23/how-i-keep-up-with-ai-progress/" target="_blank">https://blog.nilenso.com/blog/2025/06/23/how-i-keep-up-with-ai-progress/</a></div></div>
+                        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/7.png" class="page-character" alt="페이지 캐릭터" />
+                    </div>
+                </div>
     </div>
-</div> <div class="page news-page">
-    <div class="card-container">
-        <div class="news-header-section">
-            <div class="topic-category">기술</div>
-            <h2 class="category-title">GeekNews #4</h2>
-        </div>
-        <div class="news-content-section">
-            <div class="news-title">MCP: (우연한) 범용 플러그인 시스템</div>
-            <div class="news-body">
-                <div class="news-description">USB-C는 단순한 충전·파일 전송용이 아니라 다양한 용도로 확장될 수 있는 범용성에서 가치가 있으며 MCP는 모든 데이터 소스와 툴을 연결하는 범용 플러그인 시스템이 될 수 있다.</div>
-            </div>
-            <div class="links-section">
-                <div class="link-item"><span class="link-label">토론:</span>https://news.hada.io/topic?id=21706</div><div class="link-item"><span class="link-label">원문:</span>https://worksonmymachine.substack.com/p/mcp-an-accidentally-universal-plugin</div>
-            </div>
-        </div>
-        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/5.png" class="page-character" alt="캐릭터" />
-    </div>
-</div> <div class="page news-page">
-    <div class="card-container">
-        <div class="news-header-section">
-            <div class="topic-category">영상</div>
-            <h2 class="category-title">GeekNews #5</h2>
-        </div>
-        <div class="news-content-section">
-            <div class="news-title">Claude Code로 17시간만에 acticrawl.com 완성: AI 협업의 새로운 가능성</div>
-            <div class="news-body">
-                <div class="news-description">17시간 마라톤 개발의 실제 과정 1단계: 레퍼런스 기반 디자인 시스템 구축 2단계: 비즈니스 로직 및 수익 모델 설계 3단계: 테스트 및 배포 4단계: 테스트 코드 작성으로 안정성 확보 자동화된 배포 파이프라인 AI가 단계별 해결 한다.</div>
-            </div>
-            <div class="links-section">
-                <div class="link-item"><span class="link-label">토론:</span>https://news.hada.io/topic?id=21721</div><div class="link-item"><span class="link-label">YouTube:</span>https://www.youtube.com/live/zNy9BM8LJwc</div>
-            </div>
-        </div>
-        <img src="https://jiggloghttps.s3.ap-northeast-2.amazonaws.com/image/6.png" class="page-character" alt="캐릭터" />
+    <div class="page-footer">
+        <span class="page-number">3</span>
     </div>
 </div> <div class="page summary-page">
     <div class="card-container">
         <div class="summary-header-section">
             <h1 class="summary-main-title">GeekNews 요약</h1>
-            <p class="summary-date">2025년 06월 30일</p>
+            <p class="summary-date">2025년 07월 23일</p>
         </div>
         <div class="summary-content">
             <h2 class="summary-subtitle">오늘의 주요 뉴스</h2>
@@ -601,41 +886,42 @@ a:hover {
                 <div class="summary-item">
     <div class="summary-header">
         <span class="summary-number">1</span>
-        <span class="summary-category">개발</span>
     </div>
-    <div class="summary-title">Automatisch — Zapier 대체용 자동화 플랫폼 오픈소스</div>
+    <div class="summary-title">24시간 만에 10억 웹페이지를 크롤링한 2025년형 대규모 크롤러 구축기</div>
 </div> <div class="summary-item">
     <div class="summary-header">
         <span class="summary-number">2</span>
-        <span class="summary-category">기술</span>
     </div>
-    <div class="summary-title">많은 랜섬웨어 유형이 러시아어 키보드 설치 시 공격을 중단한다 (2021)</div>
+    <div class="summary-title">왜 사실만으로는 생각이 바뀌지 않는가 — "구조가 답이다"</div>
 </div> <div class="summary-item">
     <div class="summary-header">
         <span class="summary-number">3</span>
-        <span class="summary-category">기술</span>
     </div>
-    <div class="summary-title">ECMAScript 2025가 공식 표준으로 승인됨</div>
+    <div class="summary-title">Show GN: KoDarkBench : 어떤 K-LLM이 가장 음침할까?</div>
 </div> <div class="summary-item">
     <div class="summary-header">
         <span class="summary-number">4</span>
-        <span class="summary-category">기술</span>
     </div>
-    <div class="summary-title">MCP: (우연한) 범용 플러그인 시스템</div>
+    <div class="summary-title">RAG에서 문서 파싱은 필요 없음: 이미지만 사용하세요</div>
 </div> <div class="summary-item">
     <div class="summary-header">
         <span class="summary-number">5</span>
-        <span class="summary-category">AI</span>
     </div>
-    <div class="summary-title">Claude Code로 17시간만에 acticrawl.com 완성: AI 협업의 새로운 가능성</div>
+    <div class="summary-title">TODO는 실제로 '처리하기 위한 것'이 아님</div>
+</div> <div class="summary-item">
+    <div class="summary-header">
+        <span class="summary-number">6</span>
+    </div>
+    <div class="summary-title">AI 발전을 따라잡는 나만의 방법 (그리고 당신도 꼭 해야 하는 이유)</div>
 </div> 
             </div>
             <div class="summary-footer">
-                <p>총 5개의 뉴스를 확인했어요</p>
+                <p>총 6개의 뉴스를 확인했어요</p>
                 <p class="summary-source">출처: GeekNews (news.hada.io)</p>
             </div>
         </div>
     </div>
-</div> </body>
-        </html>
-        
+</div> 
+    </div>
+</body>
+</html> 

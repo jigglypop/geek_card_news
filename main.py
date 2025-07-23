@@ -15,17 +15,141 @@ import uvicorn
 from contextlib import asynccontextmanager
 import logging
 from openai import AsyncOpenAI
+import json
+import aioboto3
+import time
+from fastapi.staticfiles import StaticFiles
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 load_dotenv()
+
+class KakaoManager:
+    def __init__(self, config):
+        self.kakao_config = config
+        self.token_file = self.kakao_config['token_file']
+        self.session = httpx.AsyncClient()
+
+    async def _load_tokens(self):
+        try:
+            with open(self.token_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            logging.warning(f"카카오 토큰 파일({self.token_file})을 찾을 수 없습니다. kakao_auth.py를 먼저 실행하세요.")
+            return None
+    
+    async def _save_tokens(self, tokens):
+        with open(self.token_file, 'w') as f:
+            json.dump(tokens, f)
+
+    async def _refresh_token_if_needed(self):
+        tokens = await self._load_tokens()
+        if not tokens:
+            return None
+
+        # 실제로는 만료 시간을 확인해야 하지만, 여기서는 리프레시 토큰 존재 여부로 간략화
+        if 'refresh_token' in tokens:
+            url = "https://kauth.kakao.com/oauth/token"
+            data = {
+                "grant_type": "refresh_token",
+                "client_id": self.kakao_config['rest_api_key'],
+                "refresh_token": tokens['refresh_token']
+            }
+            response = await self.session.post(url, data=data)
+            
+            if response.status_code == 200:
+                new_tokens = response.json()
+                # 카카오는 리프레시 토큰을 한 번 사용하면 만료될 수 있으므로, 새 리프레시 토큰이 오면 업데이트
+                tokens['access_token'] = new_tokens['access_token']
+                if 'refresh_token' in new_tokens:
+                    tokens['refresh_token'] = new_tokens['refresh_token']
+                
+                await self._save_tokens(tokens)
+                logging.info("카카오 액세스 토큰을 성공적으로 갱신했습니다.")
+                return tokens['access_token']
+            else:
+                logging.error(f"카카오 토큰 갱신 실패: {response.text}")
+                return None
+        return tokens.get('access_token')
+
+    async def send_card_news(self, image_path, news_items):
+        logging.info("카카오톡 채널 메시지 전송 시작")
+        access_token = await self._refresh_token_if_needed()
+        if not access_token:
+            logging.error("유효한 카카오 액세스 토큰이 없어 메시지를 보낼 수 없습니다.")
+            return
+
+        # 1. 친구 목록 가져오기
+        friend_list_url = "https://kapi.kakao.com/v1/api/talk/friends"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = await self.session.get(friend_list_url, headers=headers)
+        
+        if response.status_code != 200:
+            logging.error(f"카카오 친구 목록 가져오기 실패: {response.text}")
+            return
+            
+        friends = response.json().get("elements", [])
+        if not friends:
+            logging.warning("메시지를 보낼 채널 친구가 없습니다. 채널을 추가한 사용자가 있는지 확인하세요.")
+            return
+
+        friend_uuids = [friend["uuid"] for friend in friends]
+        logging.info(f"총 {len(friend_uuids)}명의 친구에게 메시지를 보냅니다.")
+
+        # 2. 이미지 URL 생성
+        image_filename = os.path.basename(image_path)
+        # FastAPI 정적 파일 경로에 맞춰 URL 구성
+        image_url = f"{self.kakao_config['server_base_url']}/static/{image_filename}"
+        
+        # 3. 카카오톡 피드 템플릿 메시지 구성
+        template_object = {
+            "object_type": "feed",
+            "content": {
+                "title": f"{time.strftime('%Y년 %m월 %d일')} 오늘의 뉴스",
+                "description": "새로운 소식이 도착했어요! 아래 버튼을 눌러 확인해보세요.",
+                "image_url": image_url,
+                "image_width": 1200,
+                "image_height": 630,
+                "link": {
+                    "web_url": f"{self.kakao_config['server_base_url']}/news/html",
+                    "mobile_web_url": f"{self.kakao_config['server_base_url']}/news/html",
+                }
+            },
+            "buttons": [
+                {
+                    "title": "뉴스 보러가기",
+                    "link": {
+                        "web_url": f"{self.kakao_config['server_base_url']}/news/html",
+                        "mobile_web_url": f"{self.kakao_config['server_base_url']}/news/html"
+                    }
+                }
+            ]
+        }
+        
+        # 4. 메시지 전송
+        message_api_url = "https://kapi.kakao.com/v1/api/talk/friends/message/default/send"
+        payload = {
+            'receiver_uuids': json.dumps(friend_uuids),
+            'template_object': json.dumps(template_object)
+        }
+        
+        response = await self.session.post(message_api_url, headers=headers, data=payload)
+        if response.status_code == 200 and response.json().get('successful_receiver_uuids'):
+            logging.info("채널 친구에게 메시지를 성공적으로 보냈습니다.")
+        else:
+            logging.error(f"메시지 보내기 실패: {response.text}")
 
 class GeekNewsCardGenerator:
     def __init__(self):
         self.output_dir = PATH_CONFIG["output_dir"]
         self.template_dir = PATH_CONFIG["template_dir"]
         self.generated_image_path = os.path.join(self.output_dir, "geek_news.png")
+        self.generated_html_path = os.path.join(self.output_dir, "geek_news.html")
         self.summary_mode = AI_CONFIG["summary_mode"]
+        if KAKAO_CONFIG.get("enabled"):
+            self.kakao_manager = KakaoManager(KAKAO_CONFIG)
+        else:
+            self.kakao_manager = None
         self._initialize_model()
 
     def _initialize_model(self):
@@ -191,11 +315,14 @@ class GeekNewsCardGenerator:
         news_template = self.load_template(PATH_CONFIG["news_template"])
         pages_html = ""
 
+        character_iterator = iter(page_characters)
+
         for i in range(0, len(news_items), 2):
             page_news_items = news_items[i:i+2]
             news_html_parts = []
 
-            for news_item in page_news_items:
+            for idx, news_item in enumerate(page_news_items):
+                item_number = i + idx + 1
                 domain_label = "원문"
                 link = news_item.get('link')
                 if link:
@@ -206,35 +333,52 @@ class GeekNewsCardGenerator:
                 
                 geek_news_link = f"https://news.hada.io/topic?id={news_item['topic_id']}" if news_item.get('topic_id') else ""
                 topic_category = "기술"
+                category_class = "tech"
                 link_lower = link.lower() if link else ''
                 title_lower = news_item.get('title', '').lower()
-                if "github" in link_lower or "git" in title_lower: topic_category = "개발"
-                elif "youtube" in link_lower: topic_category = "영상"
-                elif "blog" in link_lower: topic_category = "블로그"
-                elif "ai" in title_lower or "gemini" in title_lower: topic_category = "AI"
-                elif "데이터" in title_lower or "data" in title_lower: topic_category = "데이터"
+                if "github" in link_lower or "git" in title_lower: 
+                    topic_category = "개발"
+                    category_class = "dev"
+                elif "youtube" in link_lower: 
+                    topic_category = "영상"
+                    category_class = "video"
+                elif "blog" in link_lower: 
+                    topic_category = "블로그"
+                    category_class = "blog"
+                elif "ai" in title_lower or "gemini" in title_lower or "gpt" in title_lower: 
+                    topic_category = "AI"
+                    category_class = "ai"
+                elif "데이터" in title_lower or "data" in title_lower: 
+                    topic_category = "데이터"
+                    category_class = "data"
                 links_html = ""
                 if geek_news_link:
                     links_html += f'<div class="link-item"><span class="link-label">토론:</span><a href="{geek_news_link}" target="_blank">{geek_news_link}</a></div>'
                 if link:
                     links_html += f'<div class="link-item"><span class="link-label">{domain_label}:</span><a href="{link}" target="_blank">{link}</a></div>'
-
+                try:
+                    char_src = next(character_iterator)
+                    character_html = f'<img src="{char_src}" class="page-character" alt="페이지 캐릭터" />'
+                except StopIteration:
+                    character_html = "" # 캐릭터가 더 없으면 빈 문자열
                 news_html_parts.append(f"""
                     <div class="news-item">
-                        <div class="news-header"><span class="news-category">{topic_category}</span></div>
+                        <div class="news-header">
+                            <span class="news-category {category_class}">{topic_category}</span>
+                        </div>
                         <h2 class="news-title"><span>{news_item['title']}</span></h2>
                         <p class="news-description">{news_item['description']}</p>
                         <div class="links">{links_html}</div>
+                        {character_html}
                     </div>
                 """)
             news_content_for_page = f'<div class="news-container">{"".join(news_html_parts)}</div>'
-            character_src = page_characters[(i // 2) % len(page_characters)] if page_characters else None
-            character_html = f'<img src="{character_src}" class="page-character" alt="캐릭터" />' if character_src else ''
+            
+
+
             pages_html += news_template.format(
                 page_number=(i // 2) + 1,
-                news_content=news_content_for_page,
-                character_image=character_html
-            )
+                news_content=news_content_for_page)
         return pages_html
 
     def _render_summary_page(self, news_items):
@@ -279,38 +423,36 @@ class GeekNewsCardGenerator:
     def create_styles(self):
         base_css = self.load_template(PATH_CONFIG["style_file"])
         css = base_css
-        css = css.replace("{{page_width}}", str(OUTPUT_CONFIG["page_width"]))
-        css = css.replace("{{page_height}}", str(OUTPUT_CONFIG["page_height"]))
-        css = css.replace("{{cover_title_size}}", FONT_CONFIG["cover_title"])
-        css = css.replace("{{cover_subtitle_size}}", FONT_CONFIG["cover_subtitle"])
-        css = css.replace("{{news_title_size}}", FONT_CONFIG["news_title"])
-        css = css.replace("{{news_description_size}}", FONT_CONFIG["news_description"])
-        css = css.replace("{{news_category_size}}", FONT_CONFIG["news_category"])
-        css = css.replace("{{news_number_size}}", FONT_CONFIG["news_number"])
-        css = css.replace("{{link_text_size}}", FONT_CONFIG["link_text"])
-        css = css.replace("{{summary_title_size}}", FONT_CONFIG["summary_title"])
-        css = css.replace("{{summary_subtitle_size}}", FONT_CONFIG["summary_subtitle"])
-        css = css.replace("{{summary_item_title_size}}", FONT_CONFIG["summary_item_title"])
-        
         return css
 
-    async def generate_combined_image(self, news_items):
+    async def generate_and_save_html(self, news_items):
         html_content = await self.create_html(news_items)
         css_content = self.create_styles()
     
-        final_html = f"<html><head><style>{css_content}</style></head><body>{html_content}</body></html>"
-        logging.info("전체 페이지 스크린샷 생성 중")
+        combined_template = self.load_template(PATH_CONFIG["combined_template"])
+        final_html = combined_template.replace("{{css_content}}", css_content).replace("{{html_content}}", html_content)
+
+        with open(self.generated_html_path, 'w', encoding='utf-8') as f:
+            f.write(final_html)
+        logging.info(f"'{self.generated_html_path}' 파일 생성 완료")
+
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             page = await browser.new_page()
             await page.set_content(final_html)
-            await page.set_viewport_size({
-                "width": OUTPUT_CONFIG["page_width"], 
-                "height": 1080  
-            })
-            await page.screenshot(path=self.generated_image_path, full_page=True)
+            
+            # 카톡 미리보기용 썸네일 이미지 생성
+            preview_image_path = os.path.join(self.output_dir, "geek_news_preview.png")
+            
+            # body의 첫번째 자식 요소(커버)만 스크린샷
+            cover_element = await page.query_selector('body > div:first-child')
+            if cover_element:
+                 await cover_element.screenshot(path=preview_image_path)
+                 logging.info(f"'{preview_image_path}' 썸네일 생성 완료")
+
             await browser.close()
-        logging.info(f"'{self.generated_image_path}' 파일 생성 완료")
+        
+        return self.generated_html_path, preview_image_path
 
     def read_file(self, filepath):
         try:
@@ -328,15 +470,28 @@ class GeekNewsCardGenerator:
         os.makedirs(os.path.join(self.output_dir, "images"), exist_ok=True)
 
     async def generate(self):
-        self.create_directory()
-        logging.info("=== 긱뉴스 카드뉴스 생성 시작 ===")
-        news_items = await self.fetch_news()
-        if not news_items:
-            logging.warning("뉴스를 가져오지 못했습니다.")
-            return
-        logging.info(f"{len(news_items)}개의 뉴스를 가져왔습니다.")
-        await self.generate_combined_image(news_items)
-        logging.info("=== 긱뉴스 카드뉴스 생성 완료 ===")
+        try:
+            logging.info("=== 긱뉴스 카드뉴스 생성 시작 ===")
+            self.create_directory()
+            news_items = await self.fetch_news()
+
+            if not news_items:
+                logging.info("가져올 뉴스가 없습니다.")
+                return
+
+            logging.info(f"{len(news_items)}개의 뉴스를 가져왔습니다.")
+            
+            html_path, preview_image_path = await self.generate_and_save_html(news_items)
+            
+            # PNG 대신 HTML을 보내도록 send_card_news를 호출하지만, 
+            # 카톡 템플릿에는 썸네일 이미지가 필요하므로 preview_image_path를 전달합니다.
+            if html_path and self.kakao_manager:
+                await self.kakao_manager.send_card_news(preview_image_path, news_items)
+            
+            logging.info("=== 긱뉴스 카드뉴스 생성 완료 ===")
+
+        except Exception as e:
+            logging.error(f"카드뉴스 생성 중 오류 발생: {e}", exc_info=True)
 
 generator = GeekNewsCardGenerator()
 scheduler = AsyncIOScheduler()
@@ -345,8 +500,8 @@ scheduler = AsyncIOScheduler()
 async def lifespan(app: FastAPI):
     # Startup
     logging.info("FastAPI 애플리케이션 시작")
-    if not os.path.exists(generator.generated_image_path):
-        logging.info("초기 이미지 생성...")
+    if not os.path.exists(generator.generated_html_path):
+        logging.info("초기 HTML 생성...")
         await generator.generate()
     
     scheduler.add_job(generator.generate, 'cron', hour=0)
@@ -357,12 +512,19 @@ async def lifespan(app: FastAPI):
     logging.info("스케줄러 종료")
 
 app = FastAPI(lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=PATH_CONFIG["output_dir"]), name="static")
 
-@app.get("/news", response_class=FileResponse)
-async def get_news_image():
+@app.get("/", response_class=FileResponse)
+async def get_news_image_legacy():
     if not os.path.exists(generator.generated_image_path):
         return Response(content="뉴스 이미지를 찾을 수 없습니다. 생성 중일 수 있으니 잠시 후 다시 시도해주세요.", status_code=404)
     return FileResponse(generator.generated_image_path, media_type="image/png")
+
+@app.get("/news/html", response_class=FileResponse)
+async def get_news_html():
+    if not os.path.exists(generator.generated_html_path):
+        return Response(content="뉴스 HTML을 찾을 수 없습니다. 생성 중일 수 있으니 잠시 후 다시 시도해주세요.", status_code=404)
+    return FileResponse(generator.generated_html_path, media_type="text/html")
 
 @app.post("/news/refresh")
 async def refresh_news():

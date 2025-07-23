@@ -1,32 +1,16 @@
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>오늘의 긱뉴스</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모드뉴스</title>
     <style>
-        {{ base_css }}
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        #wrapper {
-            width: {{ page_width }}px;
-            background: {{ cover_background }};
-        }
-        .page {
-            height: {{ page_height }}px;
-            page-break-after: unset;
-            background: transparent !important;
-        }
-        .card-container, .cover-container, .summary-page .card-container {
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-        }
+        {{css_content}}
     </style>
 </head>
 <body>
-    <div id="wrapper">
-        {{ html_content }}
+    <div class="page-wrapper">
+        {{html_content}}
     </div>
 </body>
 </html> 

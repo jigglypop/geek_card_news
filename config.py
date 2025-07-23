@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # 파일 경로 설정
 PATH_CONFIG = {
     "output_dir": "output",
@@ -8,6 +13,7 @@ PATH_CONFIG = {
     "summary_template": "summary_template.html",
     "summary_item_template": "summary_item_template.html",
     "summary_prompt": "summary_prompt.txt",
+    "combined_template": "combined_template.html",
     "image_dir": "output/images",
     "character_dir": "image/character"
 }
@@ -47,27 +53,7 @@ S3_CONFIG = {
     "qr_code_key": "image/QR.png",
     "font_prefix": "fonts/"
 }
-# 색상 커스터마이징 설정
-COLOR_CONFIG = {
-    "cover_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)",    # 16:9 비율에 맞게 각도 조정
-    "news_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)",     # 모든 페이지 통일
-    "summary_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)",  # 모든 페이지 통일
-    "end_background": "linear-gradient(160deg, #FF5F6D 0%, #FFC371 100%)"       # 모든 페이지 통일
-}
 
-# 폰트 크기 커스터마이징 설정
-FONT_CONFIG = {
-    "cover_title": "220px",
-    "cover_subtitle": "80px",
-    "news_title": "48px",        # 48px → 56px
-    "news_description": "36px",   # 32px → 36px
-    "news_category": "24px",      # 18px → 24px
-    "news_number": "36px",
-    "link_text": "22px",         # 18px → 22px
-    "summary_title": "72px",
-    "summary_subtitle": "36px",
-    "summary_item_title": "32px"  # 22px → 26px
-}
 # 텍스트 커스터마이징 설정
 TEXT_CONFIG = {
     "cover_subtitle": "모여봐요 개발자와 AI의 숲",
@@ -101,4 +87,13 @@ AI_CONFIG = {
     "openai_model": "gpt-4o-mini",  # 또는 "gpt-3.5-turbo"
     "openai_max_tokens": 80,
     "openai_temperature": 0.3
+}
+
+# 카카오톡 채널 설정
+KAKAO_CONFIG = {
+    "enabled": True, # 카카오톡 전송 기능 활성화 여부
+    "rest_api_key": os.getenv("KAKAO_REST_API"), # [필수] .env 파일에서 읽어옴
+    "redirect_uri": "https://example.com/oauth", # 카카오 개발자 사이트에 등록한 Redirect URI
+    "token_file": "kakao_token.json", # 발급된 토큰이 저장될 파일명
+    "server_base_url": "http://15.165.73.31:8000" # [필수] 외부에서 접근 가능한 서버 주소.
 } 

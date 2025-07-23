@@ -16,17 +16,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 4. Install uv
 RUN pip install uv
 
-# 5. Copy application code and dependency files
-COPY . .
+# 5. Copy only dependency files first to leverage Docker cache
+COPY pyproject.toml uv.lock* ./
 
 # 6. Install Python dependencies using uv
 RUN uv pip install . --system
 
-# 7. Install playwright browsers and their dependencies
+# 7. Copy the rest of the application code
+COPY . .
+
+# 8. Install playwright browsers and their dependencies
 RUN playwright install --with-deps chromium
 
-# 8. Expose the port the app runs on
+# 9. Expose the port the app runs on
 EXPOSE 8000
 
-# 9. Set the command to run the application
+# 10. Set the command to run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
