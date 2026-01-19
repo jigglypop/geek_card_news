@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # 파일 경로 설정
 PATH_CONFIG = {
-    "output_dir": "output",
-    "template_dir": "templates",
+    "output_dir": os.path.join(BASE_DIR, "output"),
+    "template_dir": os.path.join(BASE_DIR, "templates"),
     "style_file": "style.css",
     "cover_template": "cover_template.html",
     "news_template": "news_template.html",
@@ -14,8 +15,8 @@ PATH_CONFIG = {
     "summary_item_template": "summary_item_template.html",
     "summary_prompt": "summary_prompt.txt",
     "combined_template": "combined_template.html",
-    "image_dir": "output/images",
-    "character_dir": "image/character"
+    "image_dir": os.path.join(BASE_DIR, "output", "images"),
+    "character_dir": os.path.join(BASE_DIR, "image", "character")
 }
 
 # 크롤링 설정
@@ -65,16 +66,10 @@ TEXT_CONFIG = {
     "summary_footer_text": "",
     "summary_source": "GeekNews"
 }
-# 이모지 커스터마이징 설정
-EMOJI_CONFIG = {
-    "speech_bubble": "💬",
-    "lightbulb": "💡",
-    "star": "⭐"
-}
 # AI 모델 설정
 AI_CONFIG = {
     # 요약 모드 설정: "huggingface" 또는 "openai"
-    "summary_mode": "openai",  # 기본값은 허깅페이스
+    "summary_mode": os.getenv("SUMMARY_MODE", "openai"),
     # 허깅페이스 모델 설정
     "model_name": "lcw99/t5-large-korean-text-summary",
     "max_input_length": 768,
@@ -84,9 +79,9 @@ AI_CONFIG = {
     "num_beams": 4,
     
     # OpenAI 모델 설정
-    "openai_model": "gpt-4o-mini",  # 또는 "gpt-3.5-turbo"
-    "openai_max_tokens": 80,
-    "openai_temperature": 0.3
+    "openai_model": os.getenv("OPENAI_MODEL", "gpt-4o"),
+    "openai_max_tokens": int(os.getenv("OPENAI_MAX_TOKENS", "300")),
+    "openai_temperature": float(os.getenv("OPENAI_TEMPERATURE", "0.3")),
 }
 
 # 카카오톡 채널 설정

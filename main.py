@@ -1,13 +1,11 @@
 import os
 import asyncio
 from datetime import datetime
+import re
 from bs4 import BeautifulSoup
-from transformers import T5ForConditionalGeneration, AutoTokenizer
-import torch
 from config import *
 from dotenv import load_dotenv
 import httpx
-from playwright.async_api import async_playwright
 from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -16,13 +14,31 @@ from contextlib import asynccontextmanager
 import logging
 from openai import AsyncOpenAI
 import json
-import aioboto3
 import time
 from fastapi.staticfiles import StaticFiles
+from urllib.parse import urljoin
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 load_dotenv()
+
+_OPENAI_KEY_PATTERN = re.compile(r"sk-[A-Za-z0-9_-]{10,}")
+_DEFAULT_HTTP_HEADERS = {
+    "User-Agent": "Mozilla/5.0",
+}
+
+
+def _redact_secrets(message: str) -> str:
+    if not message:
+        return message
+    return _OPENAI_KEY_PATTERN.sub("sk-***", message)
+
+def _truncate_text(text: str, limit: int = 220) -> str:
+    cleaned = (text or "").strip()
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[:limit].rstrip() + "..."
+
 
 class KakaoManager:
     def __init__(self, config):
@@ -146,6 +162,7 @@ class GeekNewsCardGenerator:
         self.generated_image_path = os.path.join(self.output_dir, "geek_news.png")
         self.generated_html_path = os.path.join(self.output_dir, "geek_news.html")
         self.summary_mode = AI_CONFIG["summary_mode"]
+        self.last_summary_error = None
         if KAKAO_CONFIG.get("enabled"):
             self.kakao_manager = KakaoManager(KAKAO_CONFIG)
         else:
@@ -155,6 +172,19 @@ class GeekNewsCardGenerator:
     def _initialize_model(self):
         if self.summary_mode == "huggingface":
             logging.info("한국어 요약 모델 로딩 중...")
+            try:
+                from transformers import T5ForConditionalGeneration, AutoTokenizer
+                import torch
+            except ModuleNotFoundError as e:
+                logging.error(
+                    "huggingface 요약 모드에 필요한 패키지가 없어 요약을 비활성화합니다: %s",
+                    e,
+                )
+                self.summary_mode = "disabled"
+                self.model = None
+                self.tokenizer = None
+                self.device = None
+                return
             hf_token = os.getenv('HUGGINGFACE_TOKEN')
             self.tokenizer = AutoTokenizer.from_pretrained(
                 AI_CONFIG["model_name"], token=hf_token, trust_remote_code=True
@@ -169,16 +199,23 @@ class GeekNewsCardGenerator:
             logging.info("OpenAI 클라이언트 초기화 중...")
             openai_api_key = os.getenv('OPENAI_API_KEY')
             if not openai_api_key:
-                raise ValueError("OPENAI_API_KEY 환경변수가 설정되지 않았습니다.")
+                logging.error("OPENAI_API_KEY 환경변수가 없어 요약을 비활성화합니다.")
+                self.summary_mode = "disabled"
+                self.openai_client = None
+                return
             self.openai_client = AsyncOpenAI(api_key=openai_api_key)
             logging.info("OpenAI 클라이언트 초기화 완료")
         else:
-            raise ValueError(f"지원하지 않는 요약 모드입니다: {self.summary_mode}")
+            logging.error("지원하지 않는 요약 모드(%s)라서 요약을 비활성화합니다.", self.summary_mode)
+            self.summary_mode = "disabled"
 
     async def summarize_text(self, text):
-        if not text or len(text.strip()) < 50:
-            logging.info(f"  [요약 건너뜀] 텍스트가 너무 짧습니다: {text[:100]}")
-            return ""
+        cleaned = (text or "").strip()
+        if len(cleaned) < 50:
+            logging.info(f"  [요약 건너뜀] 텍스트가 너무 짧습니다: {cleaned[:100]}")
+            return _truncate_text(cleaned)
+        if self.summary_mode == "disabled":
+            return _truncate_text(cleaned)
         logging.info(f"  [요약 원문] {text[:150]}...")
         try:
             if self.summary_mode == "huggingface":
@@ -188,8 +225,15 @@ class GeekNewsCardGenerator:
             else:
                 raise ValueError(f"지원하지 않는 요약 모드입니다: {self.summary_mode}")
         except Exception as e:
-            logging.error(f"  [요약 실패] 오류: {e}")
-            return "요약 생성에 실패했습니다."
+            status_code = getattr(e, "status_code", None)
+            safe_message = _redact_secrets(str(e))
+            self.last_summary_error = {
+                "type": type(e).__name__,
+                "status_code": status_code,
+                "message": safe_message,
+            }
+            logging.error("  [요약 실패] %s", safe_message)
+            return _truncate_text(cleaned)
 
     async def _summarize_huggingface(self, text):
         return await asyncio.to_thread(self._summarize_huggingface_sync, text)
@@ -219,39 +263,94 @@ class GeekNewsCardGenerator:
         prompt_template = self.load_template(PATH_CONFIG["summary_prompt"])
         prompt = prompt_template.format(text=text)
         
-        response = await self.openai_client.chat.completions.create(
-            model=AI_CONFIG["openai_model"],
-            messages=[
+        create_kwargs = {
+            "model": AI_CONFIG["openai_model"],
+            "messages": [
                 {"role": "system", "content": "You are a helpful assistant that summarizes Korean text."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
-            max_tokens=AI_CONFIG["openai_max_tokens"],
-            temperature=AI_CONFIG["openai_temperature"]
-        )
-        summary = response.choices[0].message.content.strip()
+            "temperature": AI_CONFIG["openai_temperature"],
+        }
+
+        token_budget = AI_CONFIG["openai_max_tokens"]
+
+        async def _create_completion(token_param: str, token_value: int):
+            return await self.openai_client.chat.completions.create(
+                **create_kwargs,
+                **{token_param: token_value},
+            )
+
+        token_param = "max_completion_tokens"
+        try:
+            response = await _create_completion(token_param, token_budget)
+        except Exception as e:
+            # 일부 모델은 max_completion_tokens 대신 max_tokens를 요구합니다.
+            message = str(e)
+            if "Unsupported parameter: 'max_completion_tokens'" in message or "param': 'max_completion_tokens'" in message:
+                token_param = "max_tokens"
+                response = await _create_completion(token_param, token_budget)
+            else:
+                raise
+
+        choice = response.choices[0]
+        raw = choice.message.content
+        summary = (raw or "").strip()
+        if not summary:
+            # gpt-5 계열은 토큰이 너무 작으면 finish_reason=length 이면서 content가 비는 경우가 있습니다.
+            if getattr(choice, "finish_reason", None) == "length":
+                retry_budget = max(token_budget * 2, 160)
+                retry_response = await _create_completion(token_param, retry_budget)
+                retry_choice = retry_response.choices[0]
+                summary = ((retry_choice.message.content or "")).strip()
+
+            if not summary:
+                logging.warning("  [OpenAI 요약 빈 응답] 원문으로 대체합니다.")
+                return _truncate_text(text)
+        self.last_summary_error = None
         logging.info(f"  [OpenAI 요약 성공] {summary}")
         return summary
 
     async def get_detail(self, topic_id):
         try:
-            async with httpx.AsyncClient() as client:
-                url = f'https://news.hada.io/topic?id={topic_id}'
-                response = await client.get(url)
-                soup = BeautifulSoup(response.text, 'lxml')
-                contents_elem = soup.find('div', class_='topic_contents')
-                if contents_elem:
-                    return contents_elem.get_text(separator=' ', strip=True)
-                desc_elem = soup.find('div', class_='topic_desc')
-                if desc_elem:
-                    return desc_elem.get_text(strip=True)
-                return ""
+            async with httpx.AsyncClient(timeout=CRAWLING_CONFIG["timeout"]) as client:
+                return await self.get_detail_with_client(topic_id, client)
         except Exception as e:
             logging.error(f"긱뉴스 상세 정보 가져오기 실패: {e}")
-            return ""
+            return "", None
+
+    async def get_detail_with_client(self, topic_id, client: httpx.AsyncClient):
+        url = urljoin(CRAWLING_CONFIG["base_url"], f"topic?id={topic_id}")
+        response = await client.get(url, headers=_DEFAULT_HTTP_HEADERS)
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        source_url = None
+        source_anchor = soup.select_one("a.ud")
+        if source_anchor:
+            href = (source_anchor.get("href") or "").strip()
+            if href:
+                source_url = href
+
+        contents_elem = soup.find('div', class_='topic_contents')
+        if contents_elem:
+            return contents_elem.get_text(separator=' ', strip=True), source_url
+
+        desc_elem = soup.find('div', class_='topic_desc')
+        if desc_elem:
+            return desc_elem.get_text(strip=True), source_url
+
+        meta = soup.find('meta', attrs={'name': 'description'})
+        if meta and meta.get('content'):
+            return meta.get('content', '').strip(), source_url
+
+        og = soup.find('meta', attrs={'property': 'og:description'})
+        if og and og.get('content'):
+            return og.get('content', '').strip(), source_url
+
+        return "", source_url
 
     async def fetch_news(self):
         async with httpx.AsyncClient(timeout=CRAWLING_CONFIG["timeout"]) as client:
-            response = await client.get(CRAWLING_CONFIG["base_url"])
+            response = await client.get(CRAWLING_CONFIG["base_url"], headers=_DEFAULT_HTTP_HEADERS)
             soup = BeautifulSoup(response.text, 'lxml')
             news_items = []
             topics = soup.find_all('div', class_='topic_row')[:CRAWLING_CONFIG["news_count"]]
@@ -261,7 +360,17 @@ class GeekNewsCardGenerator:
                 title_link = title_elem.find('a')
                 if not title_link: continue
                 title = title_link.text.strip()
-                original_link = title_link.get('href', '')
+                original_link_raw = (title_link.get('href', '') or '').strip()
+                original_link = urljoin(CRAWLING_CONFIG["base_url"], original_link_raw) if original_link_raw else ""
+
+                # 토픽 링크(토론 페이지)면 원문 링크로 쓰지 말고, 토픽 상세에서 외부 링크를 추출합니다.
+                is_topic_link = (
+                    original_link_raw.startswith("topic?id=")
+                    or original_link_raw.startswith("/topic?id=")
+                    or "news.hada.io/topic?id=" in original_link
+                )
+                if is_topic_link:
+                    original_link = ""
                 topic_id = None
                 all_links = topic.find_all('a')
                 for link in all_links:
@@ -275,13 +384,16 @@ class GeekNewsCardGenerator:
                 desc_elem = topic.find('span', class_='topicdesc')
                 desc = desc_elem.text.strip() if desc_elem else ''
                 if topic_id:
-                    detailed_desc = await self.get_detail(topic_id)
+                    detailed_desc, source_url = await self.get_detail_with_client(topic_id, client)
                     if detailed_desc and len(detailed_desc) > len(desc):
                         desc = detailed_desc
+                    if not original_link and source_url:
+                        original_link = source_url
                 summarized_desc = await self.summarize_text(desc)
+                description = summarized_desc or _truncate_text(desc) or "요약 정보가 없습니다."
                 news_items.append({
                     'title': title,
-                    'description': summarized_desc if summarized_desc else "요약 정보가 없습니다.",
+                    'description': description,
                     'link': original_link,
                     'topic_id': topic_id
                 })
@@ -301,8 +413,8 @@ class GeekNewsCardGenerator:
 
     def _render_cover_page(self, character_src, qr_src):
         cover_template = self.load_template(PATH_CONFIG["cover_template"])
-        character_html = f'<img src="{character_src}" class="character main-character" alt="캐릭터" />' if character_src else ''
-        qr_html = f'<div class="qr-section"><img src="{qr_src}" class="qr-code" alt="QR코드" /></div>' if qr_src else ''
+        character_html = f'<img src="{character_src}" class="character main-character" alt="" />' if character_src else ''
+        qr_html = f'<div class="qr-section"><img src="{qr_src}" class="qr-code" alt="" /></div>' if qr_src else ''
         
         return cover_template.format(
             cover_subtitle=TEXT_CONFIG["cover_subtitle"],
@@ -358,7 +470,7 @@ class GeekNewsCardGenerator:
                     links_html += f'<div class="link-item"><span class="link-label">{domain_label}:</span><a href="{link}" target="_blank">{link}</a></div>'
                 try:
                     char_src = next(character_iterator)
-                    character_html = f'<img src="{char_src}" class="page-character" alt="페이지 캐릭터" />'
+                    character_html = f'<img src="{char_src}" class="page-character" alt="" />'
                 except StopIteration:
                     character_html = "" # 캐릭터가 더 없으면 빈 문자열
                 news_html_parts.append(f"""
@@ -436,21 +548,27 @@ class GeekNewsCardGenerator:
             f.write(final_html)
         logging.info(f"'{self.generated_html_path}' 파일 생성 완료")
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            page = await browser.new_page()
-            await page.set_content(final_html)
-            
-            # 카톡 미리보기용 썸네일 이미지 생성
-            preview_image_path = os.path.join(self.output_dir, "geek_news_preview.png")
-            
-            # body의 첫번째 자식 요소(커버)만 스크린샷
-            cover_element = await page.query_selector('body > div:first-child')
-            if cover_element:
-                 await cover_element.screenshot(path=preview_image_path)
-                 logging.info(f"'{preview_image_path}' 썸네일 생성 완료")
+        preview_image_path = None
+        try:
+            from playwright.async_api import async_playwright
+        except ModuleNotFoundError:
+            logging.info("playwright가 설치되어 있지 않아 썸네일 생성을 건너뜁니다.")
+        else:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch()
+                page = await browser.new_page()
+                await page.set_content(final_html)
+                
+                # 카톡 미리보기용 썸네일 이미지 생성
+                preview_image_path = os.path.join(self.output_dir, "geek_news_preview.png")
+                
+                # body의 첫번째 자식 요소(커버)만 스크린샷
+                cover_element = await page.query_selector('body > div:first-child')
+                if cover_element:
+                    await cover_element.screenshot(path=preview_image_path)
+                    logging.info(f"'{preview_image_path}' 썸네일 생성 완료")
 
-            await browser.close()
+                await browser.close()
         
         return self.generated_html_path, preview_image_path
 
@@ -485,7 +603,7 @@ class GeekNewsCardGenerator:
             
             # PNG 대신 HTML을 보내도록 send_card_news를 호출하지만, 
             # 카톡 템플릿에는 썸네일 이미지가 필요하므로 preview_image_path를 전달합니다.
-            if html_path and self.kakao_manager:
+            if html_path and preview_image_path and self.kakao_manager:
                 await self.kakao_manager.send_card_news(preview_image_path, news_items)
             
             logging.info("=== 긱뉴스 카드뉴스 생성 완료 ===")
@@ -512,7 +630,41 @@ async def lifespan(app: FastAPI):
     logging.info("스케줄러 종료")
 
 app = FastAPI(lifespan=lifespan)
+os.makedirs(PATH_CONFIG["output_dir"], exist_ok=True)
 app.mount("/static", StaticFiles(directory=PATH_CONFIG["output_dir"]), name="static")
+
+@app.get("/health")
+async def health():
+    openai_key_present = bool(os.getenv("OPENAI_API_KEY"))
+    return {
+        "status": "ok",
+        "summary_mode": generator.summary_mode,
+        "openai_model": AI_CONFIG.get("openai_model"),
+        "openai_key_present": openai_key_present,
+        "last_summary_error": generator.last_summary_error,
+        "output_dir_exists": os.path.isdir(PATH_CONFIG["output_dir"]),
+        "html_exists": os.path.exists(generator.generated_html_path),
+    }
+
+@app.get("/health/openai")
+async def health_openai():
+    if generator.summary_mode != "openai":
+        return {"ok": False, "reason": "summary_mode_not_openai", "summary_mode": generator.summary_mode}
+    if not getattr(generator, "openai_client", None):
+        return {"ok": False, "reason": "openai_client_not_initialized"}
+
+    model_id = AI_CONFIG.get("openai_model")
+    try:
+        model = await generator.openai_client.models.retrieve(model_id)
+        return {"ok": True, "model": getattr(model, "id", model_id)}
+    except Exception as e:
+        status_code = getattr(e, "status_code", None)
+        safe_message = _redact_secrets(str(e))
+        return {"ok": False, "status_code": status_code, "error": safe_message, "model": model_id}
+
+@app.get("/")
+async def root():
+    return await get_news_html()
 
 @app.get("/image", response_class=FileResponse)
 async def get_news_image_legacy():
@@ -526,10 +678,15 @@ async def get_news_html():
         return Response(content="뉴스 HTML을 찾을 수 없습니다. 생성 중일 수 있으니 잠시 후 다시 시도해주세요.", status_code=404)
     return FileResponse(generator.generated_html_path, media_type="text/html")
 
+@app.get("/news/html", response_class=FileResponse)
+async def get_news_html_alias():
+    return await get_news_html()
+
 @app.post("/news/refresh")
 async def refresh_news():
     asyncio.create_task(generator.generate())
     return Response(content="뉴스 생성을 시작했습니다. 완료까지 몇 분 정도 소요될 수 있습니다.", status_code=202)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    port = int(os.getenv("PORT", "8001"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
